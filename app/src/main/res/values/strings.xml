@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">R² - Risk &amp; Reward</string>
+    
+    <!-- Navigation -->
+    <string name="nav_dashboard">대시보드</string>
+    <string name="nav_chart">차트</string>
+    <string name="nav_journal">저널</string>
+    <string name="nav_challenge">챌린지</string>
+    <string name="nav_coach">코치</string>
+    
+    <!-- Dashboard -->
+    <string name="dashboard_title">R² 대시보드</string>
+    <string name="balance">잔고</string>
+    <string name="total_pnl">총 손익</string>
+    <string name="win_rate">승률</string>
+    <string name="total_trades">거래 수</string>
+    <string name="risk_score">리스크 스코어</string>
+    <string name="cumulative_pnl">누적 손익 추이</string>
+    <string name="recent_trades">최근 거래</string>
+    
+    <!-- Chart -->
+    <string name="current_price">현재가</string>
+    <string name="entry_price">진입가</string>
+    <string name="take_profit">익절</string>
+    <string name="stop_loss">손절</string>
+    <string name="quantity">수량</string>
+    <string name="long_position">롱 (LONG)</string>
+    <string name="short_position">숏 (SHORT)</string>
+    <string name="open_position">포지션 열기</string>
+    <string name="risk_reward_ratio">R:R 비율</string>
+    
+    <!-- Common -->
+    <string name="loading">로딩 중...</string>
+    <string name="error">오류</string>
+    <string name="success">성공</string>
+    <string name="cancel">취소</string>
+    <string name="ok">확인</string>
+    <string name="save">저장</string>
+    <string name="delete">삭제</string>
+    <string name="edit">수정</string>
+    <string name="close">닫기</string>
+    
+    <!-- Position -->
+    <string name="position_opened">포지션이 열렸습니다!</string>
+    <string name="position_closed">포지션이 종료되었습니다</string>
+    <string name="tp_reached">익절 달성!</string>
+    <string name="sl_reached">손절 실행</string>
+    <string name="active">활성</string>
+    <string name="closed">종료</string>
+    
+    <!-- Journal -->
+    <string name="add_journal">저널 추가</string>
+    <string name="emotion">감정</string>
+    <string name="note">메모</string>
+    <string name="save_journal">저널 저장</string>
+    
+    <!-- Challenge -->
+    <string name="active_challenges">진행 중인 챌린지</string>
+    <string name="completed_challenges">완료된 챌린지</string>
+    <string name="challenge_progress">진행률</string>
+    <string name="accept_challenge">챌린지 수락</string>
+    <string name="challenge_completed">챌린지 완료!</string>
+    
+    <!-- Coach -->
+    <string name="coaching_messages">코치 피드백</string>
+    <string name="behavior_patterns">행동 패턴 분석</string>
+    <string name="weekly_report">주간 리포트</string>
+    <string name="recommended_challenge">추천 챌린지</string>
+    
+    <!-- Notifications -->
+    <string name="notification_tp_title">익절 달성!</string>
+    <string name="notification_sl_title">손절 실행</string>
+    <string name="notification_risk_warning_title">리스크 경고</string>
+    <string name="notification_challenge_title">챌린지 완료!</string>
+    <string name="notification_reminder_title">R² 리마인더</string>
+</resources>

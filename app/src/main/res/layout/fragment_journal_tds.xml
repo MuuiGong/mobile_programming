@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/tds_gray_50">
+    
+    <!-- 헤더 -->
+    <LinearLayout
+        android:id="@+id/header"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/tds_spacing_4"
+        android:background="@color/tds_background"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+        
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="거래 저널"
+            style="@style/TDS_Text_Title1" />
+        
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="감정과 함께 거래 기록을 돌아봅니다"
+            style="@style/TDS_Text_Body2"
+            android:textColor="@color/tds_gray_600"
+            android:layout_marginTop="@dimen/tds_spacing_1" />
+    </LinearLayout>
+    
+    <!-- 감정 필터 (TDS Chip 스타일) -->
+    <HorizontalScrollView
+        android:id="@+id/emotion_filter_scroll"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:background="@color/tds_background"
+        android:paddingStart="@dimen/tds_spacing_4"
+        android:paddingEnd="@dimen/tds_spacing_4"
+        android:paddingBottom="@dimen/tds_spacing_3"
+        app:layout_constraintTop_toBottomOf="@id/header"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+        
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chip_group_emotions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:singleSelection="false">
+            
+            <com.google.android.material.chip.Chip
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="전체"
+                app:chipBackgroundColor="@color/tds_gray_100"
+                app:chipStrokeWidth="0dp" />
+            
+            <com.google.android.material.chip.Chip
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="집중"
+                app:chipBackgroundColor="@color/tds_success_light"
+                app:chipStrokeWidth="0dp" />
+            
+            <com.google.android.material.chip.Chip
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="불안"
+                app:chipBackgroundColor="@color/tds_warning_light"
+                app:chipStrokeWidth="0dp" />
+            
+            <com.google.android.material.chip.Chip
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="욕심"
+                app:chipBackgroundColor="@color/tds_error_light"
+                app:chipStrokeWidth="0dp" />
+        </com.google.android.material.chip.ChipGroup>
+    </HorizontalScrollView>
+    
+    <!-- 저널 목록 -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_journal_list"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:padding="@dimen/tds_spacing_3"
+        android:clipToPadding="false"
+        app:layout_constraintTop_toBottomOf="@id/emotion_filter_scroll"
+        app:layout_constraintBottom_toTopOf="@id/btn_add_journal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+    
+    <!-- 저널 추가 버튼 (TDS Fixed BottomCTA) -->
+    <Button
+        android:id="@+id/btn_add_journal"
+        style="@style/TDS_Button_Primary"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/tds_button_height_large"
+        android:text="+ 저널 작성하기"
+        android:textStyle="bold"
+        android:background="@drawable/tds_button_primary"
+        android:layout_margin="@dimen/tds_spacing_4"
+        android:elevation="4dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+    
+</androidx.constraintlayout.widget.ConstraintLayout>
+

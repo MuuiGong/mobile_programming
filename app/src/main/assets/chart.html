@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Chart</title>
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #1e222d;
+            color: #d1d4dc;
+        }
+        
+        #chart-container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+        }
+        
+        #chart {
+            width: 100%;
+            height: 100%;
+        }
+        
+        #info-panel {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(30, 34, 45, 0.9);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            z-index: 100;
+        }
+        
+        .info-row {
+            margin: 5px 0;
+        }
+        
+        .label {
+            color: #787b86;
+            margin-right: 5px;
+        }
+        
+        .value {
+            color: #d1d4dc;
+            font-weight: bold;
+        }
+        
+        .positive {
+            color: #26a69a;
+        }
+        
+        .negative {
+            color: #ef5350;
+        }
+        
+        #rr-indicator {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 34, 45, 0.95);
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 100;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div id="chart-container">
+        <div id="info-panel">
+            <div class="info-row">
+                <span class="label">심볼:</span>
+                <span class="value" id="symbol">BTC/USD</span>
+            </div>
+            <div class="info-row">
+                <span class="label">현재가:</span>
+                <span class="value" id="current-price">$0.00</span>
+            </div>
+            <div class="info-row">
+                <span class="label">진입가:</span>
+                <span class="value" id="entry-price">-</span>
+            </div>
+            <div class="info-row">
+                <span class="label">익절:</span>
+                <span class="value positive" id="take-profit">-</span>
+            </div>
+            <div class="info-row">
+                <span class="label">손절:</span>
+                <span class="value negative" id="stop-loss">-</span>
+            </div>
+        </div>
+        
+        <div id="rr-indicator">
+            <span class="label">R:R 비율:</span>
+            <span class="value" id="rr-value">-</span>
+        </div>
+        
+        <div id="chart"></div>
+    </div>
+
+    <script>
+        // 차트 생성
+        const chart = LightweightCharts.createChart(document.getElementById('chart'), {
+            width: window.innerWidth,
+            height: window.innerHeight,
+            layout: {
+                background: { color: '#1e222d' },
+                textColor: '#d1d4dc',
+            },
+            grid: {
+                vertLines: { color: '#2b2b43' },
+                horzLines: { color: '#2b2b43' },
+            },
+            crosshair: {
+                mode: LightweightCharts.CrosshairMode.Normal,
+            },
+            rightPriceScale: {
+                borderColor: '#2b2b43',
+            },
+            timeScale: {
+                borderColor: '#2b2b43',
+                timeVisible: true,
+                secondsVisible: false,
+            },
+        });
+
+        // 캔들스틱 시리즈
+        const candlestickSeries = chart.addCandlestickSeries({
+            upColor: '#26a69a',
+            downColor: '#ef5350',
+            borderVisible: false,
+            wickUpColor: '#26a69a',
+            wickDownColor: '#ef5350',
+        });
+
+        // 라인 시리즈 (TP/SL)
+        let entryLine = null;
+        let takeProfitLine = null;
+        let stopLossLine = null;
+
+        // 가격 데이터 저장
+        let currentPrice = 0;
+        let entryPrice = 0;
+        let takeProfit = 0;
+        let stopLoss = 0;
+        let isLong = true;
+
+        // Android Bridge
+        const AndroidBridge = window.Android || {
+            onPriceChanged: (price) => console.log('Price:', price),
+            onEntryPriceChanged: (price) => console.log('Entry:', price),
+            onTakeProfitChanged: (price) => console.log('TP:', price),
+            onStopLossChanged: (price) => console.log('SL:', price)
+        };
+
+        // 차트 데이터 설정
+        function setChartData(dataString) {
+            try {
+                const data = JSON.parse(dataString);
+                candlestickSeries.setData(data);
+                
+                if (data.length > 0) {
+                    currentPrice = data[data.length - 1].close;
+                    updatePriceDisplay();
+                    AndroidBridge.onPriceChanged(currentPrice);
+                }
+            } catch (e) {
+                console.error('Error setting chart data:', e);
+            }
+        }
+
+        // 진입가 설정
+        function setEntryPrice(price) {
+            entryPrice = parseFloat(price);
+            
+            if (entryLine) {
+                candlestickSeries.removePriceLine(entryLine);
+            }
+            
+            entryLine = candlestickSeries.createPriceLine({
+                price: entryPrice,
+                color: '#2196F3',
+                lineWidth: 2,
+                lineStyle: LightweightCharts.LineStyle.Solid,
+                axisLabelVisible: true,
+                title: '진입',
+            });
+            
+            updatePriceDisplay();
+            calculateRR();
+            AndroidBridge.onEntryPriceChanged(entryPrice);
+        }
+
+        // 익절 설정
+        function setTakeProfit(price) {
+            takeProfit = parseFloat(price);
+            
+            if (takeProfitLine) {
+                candlestickSeries.removePriceLine(takeProfitLine);
+            }
+            
+            takeProfitLine = candlestickSeries.createPriceLine({
+                price: takeProfit,
+                color: '#26a69a',
+                lineWidth: 2,
+                lineStyle: LightweightCharts.LineStyle.Dashed,
+                axisLabelVisible: true,
+                title: 'TP',
+            });
+            
+            updatePriceDisplay();
+            calculateRR();
+            AndroidBridge.onTakeProfitChanged(takeProfit);
+        }
+
+        // 손절 설정
+        function setStopLoss(price) {
+            stopLoss = parseFloat(price);
+            
+            if (stopLossLine) {
+                candlestickSeries.removePriceLine(stopLossLine);
+            }
+            
+            stopLossLine = candlestickSeries.createPriceLine({
+                price: stopLoss,
+                color: '#ef5350',
+                lineWidth: 2,
+                lineStyle: LightweightCharts.LineStyle.Dashed,
+                axisLabelVisible: true,
+                title: 'SL',
+            });
+            
+            updatePriceDisplay();
+            calculateRR();
+            AndroidBridge.onStopLossChanged(stopLoss);
+        }
+
+        // 롱/숏 설정
+        function setPositionType(long) {
+            isLong = long;
+            calculateRR();
+        }
+
+        // R:R 비율 계산
+        function calculateRR() {
+            if (entryPrice === 0 || takeProfit === 0 || stopLoss === 0) {
+                document.getElementById('rr-value').textContent = '-';
+                return;
+            }
+
+            let potentialProfit, potentialLoss;
+
+            if (isLong) {
+                potentialProfit = takeProfit - entryPrice;
+                potentialLoss = entryPrice - stopLoss;
+            } else {
+                potentialProfit = entryPrice - takeProfit;
+                potentialLoss = stopLoss - entryPrice;
+            }
+
+            if (potentialLoss <= 0) {
+                document.getElementById('rr-value').textContent = '잘못된 설정';
+                document.getElementById('rr-value').style.color = '#ef5350';
+                return;
+            }
+
+            const rr = potentialProfit / potentialLoss;
+            const rrElement = document.getElementById('rr-value');
+            rrElement.textContent = rr.toFixed(2) + ':1';
+            
+            // 색상 설정
+            if (rr >= 2.0) {
+                rrElement.style.color = '#26a69a'; // 좋음
+            } else if (rr >= 1.0) {
+                rrElement.style.color = '#FFC107'; // 보통
+            } else {
+                rrElement.style.color = '#ef5350'; // 나쁨
+            }
+        }
+
+        // 가격 표시 업데이트
+        function updatePriceDisplay() {
+            document.getElementById('current-price').textContent = '$' + currentPrice.toFixed(2);
+            
+            if (entryPrice > 0) {
+                document.getElementById('entry-price').textContent = '$' + entryPrice.toFixed(2);
+            }
+            
+            if (takeProfit > 0) {
+                document.getElementById('take-profit').textContent = '$' + takeProfit.toFixed(2);
+            }
+            
+            if (stopLoss > 0) {
+                document.getElementById('stop-loss').textContent = '$' + stopLoss.toFixed(2);
+            }
+        }
+
+        // 심볼 설정
+        function setSymbol(symbolName) {
+            document.getElementById('symbol').textContent = symbolName;
+        }
+
+        // 윈도우 리사이즈 처리
+        window.addEventListener('resize', () => {
+            chart.applyOptions({
+                width: window.innerWidth,
+                height: window.innerHeight,
+            });
+        });
+
+        // 초기화 완료 신호
+        console.log('Chart initialized');
+    </script>
+</body>
+</html>
+

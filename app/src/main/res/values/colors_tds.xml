@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- TDS 기반 색상 시스템 -->
+    
+    <!-- Primary (토스 블루) -->
+    <color name="tds_blue_500">#0064FF</color>
+    <color name="tds_blue_400">#3182FF</color>
+    <color name="tds_blue_300">#5CA1FF</color>
+    <color name="tds_blue_600">#0050CC</color>
+    <color name="tds_blue_700">#003D99</color>
+    
+    <!-- Grayscale -->
+    <color name="tds_gray_50">#F9FAFB</color>
+    <color name="tds_gray_100">#F2F4F6</color>
+    <color name="tds_gray_200">#E5E8EB</color>
+    <color name="tds_gray_300">#D1D6DB</color>
+    <color name="tds_gray_400">#B0B8C1</color>
+    <color name="tds_gray_500">#8B95A1</color>
+    <color name="tds_gray_600">#6B7684</color>
+    <color name="tds_gray_700">#4E5968</color>
+    <color name="tds_gray_800">#333D4B</color>
+    <color name="tds_gray_900">#191F28</color>
+    
+    <!-- Semantic Colors -->
+    <color name="tds_success">#12B564</color>
+    <color name="tds_success_light">#E8F5EF</color>
+    <color name="tds_error">#F04452</color>
+    <color name="tds_error_light">#FFEBEE</color>
+    <color name="tds_warning">#FFB800</color>
+    <color name="tds_warning_light">#FFF8E1</color>
+    <color name="tds_info">#0064FF</color>
+    <color name="tds_info_light">#E3F2FD</color>
+    
+    <!-- Background -->
+    <color name="tds_background">#FFFFFF</color>
+    <color name="tds_background_elevated">#FFFFFF</color>
+    <color name="tds_background_dimmed">#000000</color>
+    <color name="tds_background_dimmed_alpha">#80000000</color>
+    
+    <!-- Dark Mode -->
+    <color name="tds_dark_background">#191F28</color>
+    <color name="tds_dark_surface">#333D4B</color>
+    <color name="tds_dark_surface_elevated">#4E5968</color>
+    
+    <!-- Trading Specific (TDS 스타일로 조정) -->
+    <color name="tds_profit">#12B564</color>
+    <color name="tds_loss">#F04452</color>
+    <color name="tds_neutral">#8B95A1</color>
+    
+    <!-- Overlay -->
+    <color name="tds_overlay_dim">#80000000</color>
+    <color name="tds_overlay_strong">#CC000000</color>
+</resources>
+

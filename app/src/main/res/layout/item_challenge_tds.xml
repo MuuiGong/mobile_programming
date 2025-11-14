@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TDS Card 스타일 챌린지 아이템 -->
+<com.google.android.material.card.MaterialCardView 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/TDS_Card"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="@dimen/tds_spacing_2"
+    app:cardCornerRadius="@dimen/tds_radius_large"
+    app:cardElevation="0dp"
+    android:backgroundTint="@color/tds_background">
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/tds_spacing_4">
+        
+        <!-- 헤더 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="@dimen/tds_spacing_2">
+            
+            <TextView
+                android:id="@+id/tv_challenge_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="리스크 마스터"
+                style="@style/TDS_Text_Body1"
+                android:textStyle="bold"
+                android:textColor="@color/tds_gray_900" />
+            
+            <!-- 난이도 뱃지 (TDS Badge) -->
+            <TextView
+                android:id="@+id/tv_challenge_difficulty"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⭐⭐"
+                android:textSize="16sp"
+                android:background="@color/tds_warning_light"
+                android:textColor="@color/tds_warning"
+                android:paddingStart="@dimen/tds_spacing_2"
+                android:paddingEnd="@dimen/tds_spacing_2"
+                android:paddingTop="@dimen/tds_spacing_1"
+                android:paddingBottom="@dimen/tds_spacing_1" />
+        </LinearLayout>
+        
+        <!-- 설명 -->
+        <TextView
+            android:id="@+id/tv_challenge_description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="R:R 비율 2.0 이상으로 5회 거래하기"
+            style="@style/TDS_Text_Body2"
+            android:textColor="@color/tds_gray_700"
+            android:layout_marginBottom="@dimen/tds_spacing_3" />
+        
+        <!-- 진행률 (TDS Progress Bar) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="@dimen/tds_spacing_2">
+            
+            <ProgressBar
+                android:id="@+id/progress_challenge"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="0dp"
+                android:layout_height="8dp"
+                android:layout_weight="1"
+                android:progress="60"
+                android:progressTint="@color/tds_blue_500"
+                android:progressBackgroundTint="@color/tds_gray_200"
+                android:layout_marginEnd="@dimen/tds_spacing_2" />
+            
+            <TextView
+                android:id="@+id/tv_challenge_progress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="60%"
+                style="@style/TDS_Text_Body2"
+                android:textColor="@color/tds_blue_500"
+                android:textStyle="bold" />
+        </LinearLayout>
+        
+        <TextView
+            android:id="@+id/tv_challenge_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3 / 5 완료"
+            style="@style/TDS_Text_Caption"
+            android:textColor="@color/tds_gray_600" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
+

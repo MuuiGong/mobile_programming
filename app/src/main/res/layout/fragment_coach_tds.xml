@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/tds_gray_50">
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/tds_spacing_4">
+        
+        <!-- 헤더 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="AI 리스크 코치"
+            style="@style/TDS_Text_Title1"
+            android:layout_marginBottom="@dimen/tds_spacing_2" />
+        
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="당신의 거래 패턴을 분석하고 맞춤 피드백을 제공합니다"
+            style="@style/TDS_Text_Body2"
+            android:textColor="@color/tds_gray_600"
+            android:layout_marginBottom="@dimen/tds_spacing_6" />
+        
+        <!-- 리스크 알림 카드 (TDS Result 스타일) -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/TDS_Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/tds_spacing_3"
+            app:cardCornerRadius="@dimen/tds_radius_large"
+            app:cardElevation="0dp"
+            android:backgroundTint="@color/tds_success_light">
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="@dimen/tds_spacing_4"
+                android:gravity="center_vertical">
+                
+                <TextView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:text="✅"
+                    android:textSize="32sp"
+                    android:gravity="center"
+                    android:layout_marginEnd="@dimen/tds_spacing_3" />
+                
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="좋은 거래 습관"
+                        style="@style/TDS_Text_Body1"
+                        android:textStyle="bold"
+                        android:textColor="@color/tds_success" />
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="위험한 행동 패턴이 감지되지 않았습니다"
+                        style="@style/TDS_Text_Body2"
+                        android:textColor="@color/tds_gray_700"
+                        android:layout_marginTop="@dimen/tds_spacing_1" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+        
+        <!-- 피드백 메시지들 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="맞춤 피드백"
+            style="@style/TDS_Text_Title3"
+            android:layout_marginBottom="@dimen/tds_spacing_3" />
+        
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_coaching_messages"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false"
+            android:layout_marginBottom="@dimen/tds_spacing_4" />
+        
+        <!-- 주간 리포트 버튼 -->
+        <Button
+            android:id="@+id/btn_weekly_report"
+            style="@style/TDS_Button_Secondary"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/tds_button_height_medium"
+            android:text="📊 주간 리포트 보기"
+            android:background="@drawable/tds_button_secondary"
+            android:layout_marginBottom="@dimen/tds_spacing_3" />
+        
+        <!-- 추천 챌린지 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="추천 챌린지"
+            style="@style/TDS_Text_Title3"
+            android:layout_marginBottom="@dimen/tds_spacing_3" />
+        
+        <com.google.android.material.card.MaterialCardView
+            style="@style/TDS_Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="@dimen/tds_radius_large"
+            app:cardElevation="0dp"
+            android:backgroundTint="@color/tds_background">
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/tds_spacing_4">
+                
+                <TextView
+                    android:id="@+id/tv_recommended_challenge_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="리스크 마스터 챌린지"
+                    style="@style/TDS_Text_Body1"
+                    android:textStyle="bold"
+                    android:textColor="@color/tds_gray_900" />
+                
+                <TextView
+                    android:id="@+id/tv_recommended_challenge_desc"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="R:R 비율 2.0 이상으로 5회 거래하기"
+                    style="@style/TDS_Text_Body2"
+                    android:textColor="@color/tds_gray_600"
+                    android:layout_marginTop="@dimen/tds_spacing_1"
+                    android:layout_marginBottom="@dimen/tds_spacing_3" />
+                
+                <Button
+                    android:id="@+id/btn_accept_challenge"
+                    style="@style/TDS_Button_Primary"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/tds_button_height_medium"
+                    android:text="도전하기"
+                    android:background="@drawable/tds_button_primary" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+        
+    </LinearLayout>
+</ScrollView>
+

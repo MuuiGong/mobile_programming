@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_dashboard"
+        android:icon="@android:drawable/ic_dialog_info"
+        android:title="대시보드" />
+    
+    <item
+        android:id="@+id/nav_chart"
+        android:icon="@android:drawable/ic_menu_view"
+        android:title="차트" />
+    
+    <item
+        android:id="@+id/nav_journal"
+        android:icon="@android:drawable/ic_menu_edit"
+        android:title="저널" />
+    
+    <item
+        android:id="@+id/nav_challenge"
+        android:icon="@android:drawable/star_big_on"
+        android:title="챌린지" />
+    
+    <item
+        android:id="@+id/nav_coach"
+        android:icon="@android:drawable/ic_menu_help"
+        android:title="코치" />
+</menu>
+

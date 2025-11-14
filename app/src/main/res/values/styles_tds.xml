@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- TDS 기반 스타일 시스템 -->
+    
+    <!-- Typography -->
+    <style name="TDS_Text_Display">
+        <item name="android:textSize">@dimen/tds_text_display</item>
+        <item name="android:textColor">@color/tds_gray_900</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">-0.02</item>
+    </style>
+    
+    <style name="TDS_Text_Title1">
+        <item name="android:textSize">@dimen/tds_text_title1</item>
+        <item name="android:textColor">@color/tds_gray_900</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">-0.01</item>
+    </style>
+    
+    <style name="TDS_Text_Title2">
+        <item name="android:textSize">@dimen/tds_text_title2</item>
+        <item name="android:textColor">@color/tds_gray_900</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+    
+    <style name="TDS_Text_Title3">
+        <item name="android:textSize">@dimen/tds_text_title3</item>
+        <item name="android:textColor">@color/tds_gray_900</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+    
+    <style name="TDS_Text_Body1">
+        <item name="android:textSize">@dimen/tds_text_body1</item>
+        <item name="android:textColor">@color/tds_gray_800</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+    
+    <style name="TDS_Text_Body2">
+        <item name="android:textSize">@dimen/tds_text_body2</item>
+        <item name="android:textColor">@color/tds_gray_700</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+    
+    <style name="TDS_Text_Caption">
+        <item name="android:textSize">@dimen/tds_text_caption</item>
+        <item name="android:textColor">@color/tds_gray_600</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+    
+    <!-- Card Styles -->
+    <style name="TDS_Card">
+        <item name="cardCornerRadius">@dimen/tds_radius_large</item>
+        <item name="cardElevation">@dimen/tds_elevation_card</item>
+        <item name="cardBackgroundColor">@color/tds_background_elevated</item>
+        <item name="contentPadding">@dimen/tds_spacing_4</item>
+    </style>
+    
+    <style name="TDS_Card_Elevated">
+        <item name="cardElevation">4dp</item>
+    </style>
+    
+    <!-- Button Styles -->
+    <style name="TDS_Button" parent="Widget.Material3.Button">
+        <item name="android:minHeight">@dimen/tds_button_height_medium</item>
+        <item name="cornerRadius">@dimen/tds_radius_medium</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">@dimen/tds_text_body1</item>
+        <item name="elevation">@dimen/tds_elevation_button</item>
+        <item name="android:stateListAnimator">@null</item>
+    </style>
+    
+    <style name="TDS_Button_Primary">
+        <item name="backgroundTint">@color/tds_blue_500</item>
+        <item name="android:textColor">@color/tds_background</item>
+    </style>
+    
+    <style name="TDS_Button_Secondary" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:minHeight">@dimen/tds_button_height_medium</item>
+        <item name="cornerRadius">@dimen/tds_radius_medium</item>
+        <item name="strokeColor">@color/tds_gray_300</item>
+        <item name="android:textColor">@color/tds_gray_900</item>
+    </style>
+    
+    <style name="TDS_Button_Large">
+        <item name="android:minHeight">@dimen/tds_button_height_large</item>
+    </style>
+    
+    <!-- TextField Styles -->
+    <style name="TDS_TextField" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">@dimen/tds_radius_medium</item>
+        <item name="boxCornerRadiusTopEnd">@dimen/tds_radius_medium</item>
+        <item name="boxCornerRadiusBottomStart">@dimen/tds_radius_medium</item>
+        <item name="boxCornerRadiusBottomEnd">@dimen/tds_radius_medium</item>
+        <item name="boxStrokeColor">@color/tds_gray_300</item>
+        <item name="hintTextColor">@color/tds_gray_500</item>
+    </style>
+</resources>
+

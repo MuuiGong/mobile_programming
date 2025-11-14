@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- TDS 기반 앱 테마 -->
+    <style name="Theme.RSquare.TDS" parent="Theme.Material3.Light.NoActionBar">
+        <!-- Primary brand color (토스 블루) -->
+        <item name="colorPrimary">@color/tds_blue_500</item>
+        <item name="colorPrimaryVariant">@color/tds_blue_600</item>
+        <item name="colorOnPrimary">@color/tds_background</item>
+        
+        <!-- Secondary brand color -->
+        <item name="colorSecondary">@color/tds_success</item>
+        <item name="colorSecondaryVariant">@color/tds_success</item>
+        <item name="colorOnSecondary">@color/tds_background</item>
+        
+        <!-- Background colors -->
+        <item name="android:windowBackground">@color/tds_gray_50</item>
+        <item name="android:colorBackground">@color/tds_gray_50</item>
+        <item name="colorSurface">@color/tds_background</item>
+        <item name="colorOnSurface">@color/tds_gray_900</item>
+        
+        <!-- Status bar -->
+        <item name="android:statusBarColor">@color/tds_background</item>
+        <item name="android:windowLightStatusBar">true</item>
+        
+        <!-- Navigation bar -->
+        <item name="android:navigationBarColor">@color/tds_background</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        
+        <!-- Text colors -->
+        <item name="android:textColorPrimary">@color/tds_gray_900</item>
+        <item name="android:textColorSecondary">@color/tds_gray_600</item>
+        
+        <!-- Shape appearances -->
+        <item name="shapeAppearanceSmallComponent">@style/TDS_ShapeAppearance_SmallComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/TDS_ShapeAppearance_MediumComponent</item>
+        <item name="shapeAppearanceLargeComponent">@style/TDS_ShapeAppearance_LargeComponent</item>
+    </style>
+    
+    <!-- Shape Appearances -->
+    <style name="TDS_ShapeAppearance_SmallComponent" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerSize">@dimen/tds_radius_small</item>
+    </style>
+    
+    <style name="TDS_ShapeAppearance_MediumComponent" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerSize">@dimen/tds_radius_medium</item>
+    </style>
+    
+    <style name="TDS_ShapeAppearance_LargeComponent" parent="ShapeAppearance.Material3.LargeComponent">
+        <item name="cornerSize">@dimen/tds_radius_large</item>
+    </style>
+</resources>
+

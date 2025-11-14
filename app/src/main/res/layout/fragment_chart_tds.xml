@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/tds_gray_50">
+    
+    <!-- 상단 헤더 -->
+    <LinearLayout
+        android:id="@+id/top_header"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/tds_spacing_4"
+        android:background="@color/tds_background"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+        
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            
+            <TextView
+                android:id="@+id/tv_symbol"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="BTC"
+                style="@style/TDS_Text_Title2" />
+            
+            <Spinner
+                android:id="@+id/spinner_coin"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="120dp"
+                android:background="@drawable/tds_button_secondary" />
+        </LinearLayout>
+        
+        <TextView
+            android:id="@+id/tv_current_price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="$0.00"
+            style="@style/TDS_Text_Display"
+            android:textColor="@color/tds_profit"
+            android:layout_marginTop="@dimen/tds_spacing_2" />
+    </LinearLayout>
+    
+    <!-- WebView 차트 -->
+    <WebView
+        android:id="@+id/chart_webview"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/tds_background"
+        app:layout_constraintTop_toBottomOf="@id/top_header"
+        app:layout_constraintBottom_toTopOf="@id/trading_panel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+    
+    <!-- 거래 패널 (TDS BottomSheet 스타일) -->
+    <ScrollView
+        android:id="@+id/trading_panel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:maxHeight="280dp"
+        android:background="@drawable/tds_bottom_sheet_background"
+        android:elevation="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+        
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/tds_spacing_5">
+            
+            <!-- 핸들 바 -->
+            <View
+                android:layout_width="40dp"
+                android:layout_height="4dp"
+                android:background="@drawable/tds_handle_bar"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="@dimen/tds_spacing_4" />
+            
+            <!-- R:R 표시 (TDS Badge 스타일) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@color/tds_blue_300"
+                android:backgroundTint="#100064FF"
+                android:padding="@dimen/tds_spacing_3"
+                android:layout_marginBottom="@dimen/tds_spacing_4">
+                
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Risk:Reward 비율"
+                    style="@style/TDS_Text_Body2"
+                    android:textColor="@color/tds_gray_700" />
+                
+                <TextView
+                    android:id="@+id/tv_risk_reward"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="-"
+                    style="@style/TDS_Text_Title2"
+                    android:textColor="@color/tds_blue_500" />
+            </LinearLayout>
+            
+            <!-- 롱/숏 토글 (TDS Segmented Control 스타일) -->
+            <LinearLayout
+                android:id="@+id/toggle_position_type"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/tds_button_height_medium"
+                android:layout_marginBottom="@dimen/tds_spacing_4"
+                android:orientation="horizontal">
+                
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_long"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="롱 (LONG)"
+                    android:textColor="@color/tds_selector_text"
+                    android:background="@drawable/tds_segmented_left"
+                    android:insetLeft="0dp"
+                    android:insetTop="0dp"
+                    android:insetRight="0dp"
+                    android:insetBottom="0dp"
+                    app:cornerRadius="0dp" />
+                
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_short"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="숏 (SHORT)"
+                    android:textColor="@color/tds_selector_text"
+                    android:background="@drawable/tds_segmented_right"
+                    android:insetLeft="0dp"
+                    android:insetTop="0dp"
+                    android:insetRight="0dp"
+                    android:insetBottom="0dp"
+                    app:cornerRadius="0dp" />
+            </LinearLayout>
+            
+            <!-- 입력 필드들 (TDS TextField 스타일) -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/TDS_TextField"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/tds_spacing_3"
+                android:hint="수량"
+                app:boxBackgroundColor="@color/tds_background">
+                
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_quantity"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal"
+                    android:text="0.1"
+                    android:textSize="@dimen/tds_text_body1" />
+            </com.google.android.material.textfield.TextInputLayout>
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="@dimen/tds_spacing_3">
+                
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/TDS_TextField"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="@dimen/tds_spacing_2"
+                    android:hint="진입가"
+                    app:boxBackgroundColor="@color/tds_background">
+                    
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_entry_price"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="numberDecimal"
+                        android:textSize="@dimen/tds_text_body1" />
+                </com.google.android.material.textfield.TextInputLayout>
+                
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/TDS_TextField"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/tds_spacing_2"
+                    android:hint="익절"
+                    app:boxBackgroundColor="@color/tds_success_light">
+                    
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_take_profit"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="numberDecimal"
+                        android:textSize="@dimen/tds_text_body1" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+            
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/TDS_TextField"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/tds_spacing_5"
+                android:hint="손절"
+                app:boxBackgroundColor="@color/tds_error_light">
+                
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_stop_loss"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal"
+                    android:textSize="@dimen/tds_text_body1" />
+            </com.google.android.material.textfield.TextInputLayout>
+            
+            <!-- 포지션 열기 버튼 (TDS Primary Button) -->
+            <Button
+                android:id="@+id/btn_open_position"
+                style="@style/TDS_Button_Primary"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/tds_button_height_large"
+                android:text="포지션 열기"
+                android:textStyle="bold"
+                android:background="@drawable/tds_button_primary" />
+        </LinearLayout>
+    </ScrollView>
+    
+</androidx.constraintlayout.widget.ConstraintLayout>
+

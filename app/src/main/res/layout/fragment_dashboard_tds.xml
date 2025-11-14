@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/tds_gray_50">
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/tds_spacing_4">
+        
+        <!-- 헤더 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="R² 대시보드"
+            style="@style/TDS_Text_Title1"
+            android:layout_marginBottom="@dimen/tds_spacing_6" />
+        
+        <!-- 잔고 카드 (TDS 스타일) -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/TDS_Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/tds_spacing_3"
+            app:cardCornerRadius="@dimen/tds_radius_large"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp"
+            android:backgroundTint="@color/tds_background">
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/tds_spacing_5">
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="총 잔고"
+                    style="@style/TDS_Text_Caption"
+                    android:layout_marginBottom="@dimen/tds_spacing_2" />
+                
+                <TextView
+                    android:id="@+id/tv_balance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="$100,000.00"
+                    style="@style/TDS_Text_Display"
+                    android:textColor="@color/tds_gray_900" />
+                
+                <!-- 통계 그리드 (TDS List Row 스타일) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="@dimen/tds_spacing_5"
+                    android:background="@color/tds_gray_50"
+                    android:padding="@dimen/tds_spacing_4"
+                    android:baselineAligned="false">
+                    
+                    <!-- 총 손익 -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="총 손익"
+                            style="@style/TDS_Text_Caption"
+                            android:textColor="@color/tds_gray_600" />
+                        
+                        <TextView
+                            android:id="@+id/tv_total_pnl"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="$0.00"
+                            style="@style/TDS_Text_Title3"
+                            android:textColor="@color/tds_profit"
+                            android:layout_marginTop="@dimen/tds_spacing_1" />
+                    </LinearLayout>
+                    
+                    <!-- 승률 -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="승률"
+                            style="@style/TDS_Text_Caption"
+                            android:textColor="@color/tds_gray_600" />
+                        
+                        <TextView
+                            android:id="@+id/tv_win_rate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0%"
+                            style="@style/TDS_Text_Title3"
+                            android:textColor="@color/tds_gray_900"
+                            android:layout_marginTop="@dimen/tds_spacing_1" />
+                    </LinearLayout>
+                    
+                    <!-- 거래 수 -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="거래"
+                            style="@style/TDS_Text_Caption"
+                            android:textColor="@color/tds_gray_600" />
+                        
+                        <TextView
+                            android:id="@+id/tv_total_trades"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            style="@style/TDS_Text_Title3"
+                            android:textColor="@color/tds_gray_900"
+                            android:layout_marginTop="@dimen/tds_spacing_1" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+        
+        <!-- 리스크 게이지 카드 -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/TDS_Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/tds_spacing_3"
+            app:cardCornerRadius="@dimen/tds_radius_large"
+            app:cardElevation="0dp"
+            android:backgroundTint="@color/tds_background">
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/tds_spacing_5">
+                
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="@dimen/tds_spacing_4">
+                    
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="리스크 관리 상태"
+                        style="@style/TDS_Text_Title3" />
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="안전"
+                        style="@style/TDS_Text_Body2"
+                        android:textColor="@color/tds_success"
+                        android:background="@color/tds_success_light"
+                        android:paddingStart="@dimen/tds_spacing_2"
+                        android:paddingEnd="@dimen/tds_spacing_2"
+                        android:paddingTop="@dimen/tds_spacing_1"
+                        android:paddingBottom="@dimen/tds_spacing_1"
+                        android:layout_marginStart="@dimen/tds_spacing_2" />
+                </LinearLayout>
+                
+                <com.example.rsquare.ui.common.RiskGaugeView
+                    android:id="@+id/risk_gauge"
+                    android:layout_width="200dp"
+                    android:layout_height="200dp"
+                    android:layout_gravity="center" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+        
+        <!-- 누적 손익 차트 -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/TDS_Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/tds_spacing_3"
+            app:cardCornerRadius="@dimen/tds_radius_large"
+            app:cardElevation="0dp"
+            android:backgroundTint="@color/tds_background">
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/tds_spacing_5">
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="누적 손익 추이"
+                    style="@style/TDS_Text_Title3"
+                    android:layout_marginBottom="@dimen/tds_spacing_4" />
+                
+                <com.github.mikephil.charting.charts.LineChart
+                    android:id="@+id/pnl_chart"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+        
+        <!-- 최근 거래 -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/TDS_Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/tds_spacing_3"
+            app:cardCornerRadius="@dimen/tds_radius_large"
+            app:cardElevation="0dp"
+            android:backgroundTint="@color/tds_background">
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/tds_spacing_5">
+                
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="@dimen/tds_spacing_3">
+                    
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="최근 거래"
+                        style="@style/TDS_Text_Title3" />
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="전체보기 >"
+                        style="@style/TDS_Text_Body2"
+                        android:textColor="@color/tds_blue_500" />
+                </LinearLayout>
+                
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_recent_positions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+        
+    </LinearLayout>
+</ScrollView>
+

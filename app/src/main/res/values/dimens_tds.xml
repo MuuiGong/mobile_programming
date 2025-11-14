@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- TDS Spacing System (8dp 기반) -->
+    <dimen name="tds_spacing_1">4dp</dimen>
+    <dimen name="tds_spacing_2">8dp</dimen>
+    <dimen name="tds_spacing_3">12dp</dimen>
+    <dimen name="tds_spacing_4">16dp</dimen>
+    <dimen name="tds_spacing_5">20dp</dimen>
+    <dimen name="tds_spacing_6">24dp</dimen>
+    <dimen name="tds_spacing_8">32dp</dimen>
+    <dimen name="tds_spacing_10">40dp</dimen>
+    <dimen name="tds_spacing_12">48dp</dimen>
+    
+    <!-- TDS Radius (토스 특유의 부드러운 라운드) -->
+    <dimen name="tds_radius_small">8dp</dimen>
+    <dimen name="tds_radius_medium">12dp</dimen>
+    <dimen name="tds_radius_large">16dp</dimen>
+    <dimen name="tds_radius_xlarge">20dp</dimen>
+    <dimen name="tds_radius_full">999dp</dimen>
+    
+    <!-- TDS Elevation -->
+    <dimen name="tds_elevation_card">2dp</dimen>
+    <dimen name="tds_elevation_button">0dp</dimen>
+    <dimen name="tds_elevation_dialog">8dp</dimen>
+    
+    <!-- TDS Typography -->
+    <dimen name="tds_text_display">32sp</dimen>
+    <dimen name="tds_text_title1">26sp</dimen>
+    <dimen name="tds_text_title2">22sp</dimen>
+    <dimen name="tds_text_title3">18sp</dimen>
+    <dimen name="tds_text_body1">16sp</dimen>
+    <dimen name="tds_text_body2">14sp</dimen>
+    <dimen name="tds_text_caption">12sp</dimen>
+    
+    <!-- Button Heights -->
+    <dimen name="tds_button_height_large">56dp</dimen>
+    <dimen name="tds_button_height_medium">48dp</dimen>
+    <dimen name="tds_button_height_small">40dp</dimen>
+</resources>
+

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TDS ListRow 스타일 저널 아이템 -->
+<com.google.android.material.card.MaterialCardView 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/TDS_Card"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/tds_spacing_2"
+    app:cardCornerRadius="@dimen/tds_radius_large"
+    app:cardElevation="0dp"
+    android:backgroundTint="@color/tds_background">
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/tds_spacing_4">
+        
+        <!-- 상단: 심볼 + 감정 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="@dimen/tds_spacing_2">
+            
+            <TextView
+                android:id="@+id/tv_journal_symbol"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="BTC LONG"
+                style="@style/TDS_Text_Body1"
+                android:textStyle="bold"
+                android:textColor="@color/tds_gray_900" />
+            
+            <!-- 감정 뱃지 -->
+            <TextView
+                android:id="@+id/tv_journal_emotion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="😌 집중"
+                style="@style/TDS_Text_Body2"
+                android:textColor="@color/tds_success"
+                android:background="@color/tds_success_light"
+                android:paddingStart="@dimen/tds_spacing_2"
+                android:paddingEnd="@dimen/tds_spacing_2"
+                android:paddingTop="@dimen/tds_spacing_1"
+                android:paddingBottom="@dimen/tds_spacing_1" />
+        </LinearLayout>
+        
+        <!-- 메모 -->
+        <TextView
+            android:id="@+id/tv_journal_note"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="신중하게 진입했다. 계획대로 실행."
+            style="@style/TDS_Text_Body2"
+            android:textColor="@color/tds_gray_700"
+            android:layout_marginBottom="@dimen/tds_spacing_2" />
+        
+        <!-- 시간 -->
+        <TextView
+            android:id="@+id/tv_journal_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2시간 전"
+            style="@style/TDS_Text_Caption"
+            android:textColor="@color/tds_gray_500" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
+
