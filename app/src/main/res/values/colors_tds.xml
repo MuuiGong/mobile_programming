@@ -74,5 +74,26 @@
     <color name="mtrl_navigation_bar_item_tint_color_selected">#3182FF</color>
     <color name="mtrl_navigation_bar_item_active_indicator_color">#3182FF</color>
     <color name="mtrl_navigation_bar_item_background_color">#1e222d</color>
+    
+    <!-- R² 제안서 TDS 다크 모드 색상 체계 -->
+    <color name="tds_bg_black">#050A0E</color>      <!-- Deep Dark -->
+    <color name="tds_bg_dark">#0D1117</color>       <!-- Card Dark -->
+    <color name="tds_bg_neutral">#1A1F26</color>    <!-- Neutral -->
+    
+    <!-- Text (제안서) -->
+    <color name="tds_text_primary">#FFFFFF</color>
+    <color name="tds_text_secondary">#9CA3AF</color>
+    <color name="tds_text_tertiary">#6B7280</color>
+    
+    <!-- Semantic (제안서) -->
+    <color name="tds_success_alt">#10B981</color>       <!-- Green -->
+    <color name="tds_error_alt">#EF4444</color>         <!-- Red -->
+    <color name="tds_warning_alt">#F59E0B</color>       <!-- Yellow -->
+    <color name="tds_info_alt">#3B82F6</color>          <!-- Blue -->
+    
+    <!-- Risk Score -->
+    <color name="risk_safe">#10B981</color>         <!-- Green (71-100) -->
+    <color name="risk_caution">#F59E0B</color>      <!-- Yellow (31-70) -->
+    <color name="risk_danger">#EF4444</color>       <!-- Red (0-30) -->
 </resources>
 

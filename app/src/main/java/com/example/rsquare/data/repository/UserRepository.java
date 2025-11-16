@@ -43,6 +43,13 @@ public class UserRepository {
     }
     
     /**
+     * 사용자 ID로 조회 (동기)
+     */
+    public User getUserSync(long userId) {
+        return userDao.getUserByIdSync(userId);
+    }
+    
+    /**
      * 사용자 정보 업데이트
      */
     public void updateUser(User user) {

@@ -21,7 +21,10 @@ public class BehaviorPattern {
         EMOTIONAL_TRADING("감정적 거래"),
         FOMO("놓칠까봐 조급함"),
         EARLY_EXIT("조기 청산"),
-        POSITION_SIZING_ERROR("포지션 크기 오류");
+        POSITION_SIZING_ERROR("포지션 크기 오류"),
+        CONSECUTIVE_LOSSES("연속 손실"),
+        MOVING_STOP_LOSS("손절 변경"),
+        IMPULSIVE_ENTRY("충동적 진입");
         
         private final String displayName;
         

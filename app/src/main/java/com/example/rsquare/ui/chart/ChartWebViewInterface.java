@@ -55,6 +55,39 @@ public class ChartWebViewInterface {
     }
     
     /**
+     * JS에서 호출: 라인이 드래그되었을 때 (프롬프트 요구사항)
+     * @param lineType "entry", "tp", "sl"
+     * @param price 새로운 가격
+     */
+    @JavascriptInterface
+    public void onLineUpdated(String lineType, double price) {
+        android.util.Log.d("ChartWebViewInterface", String.format("Line %s updated to %f", lineType, price));
+        if (callback != null) {
+            switch (lineType) {
+                case "entry":
+                    callback.onEntryPriceChanged(price);
+                    break;
+                case "tp":
+                    callback.onTakeProfitChanged(price);
+                    break;
+                case "sl":
+                    callback.onStopLossChanged(price);
+                    break;
+            }
+        }
+    }
+    
+    /**
+     * JS에서 호출: 현재 가격 업데이트 (프롬프트 요구사항)
+     */
+    @JavascriptInterface
+    public void onPriceUpdated(double price) {
+        if (callback != null) {
+            callback.onPriceChanged(price);
+        }
+    }
+    
+    /**
      * 콜백 인터페이스
      */
     public interface ChartCallback {

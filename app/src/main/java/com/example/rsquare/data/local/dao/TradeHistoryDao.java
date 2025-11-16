@@ -7,6 +7,7 @@ import androidx.room.Query;
 
 import com.example.rsquare.data.local.entity.TradeHistory;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -35,5 +36,14 @@ public interface TradeHistoryDao {
     
     @Query("SELECT COUNT(*) FROM trade_history WHERE timestamp >= :startTime")
     int getTradeCountSince(long startTime);
+    
+    /**
+     * 날짜 범위로 거래 조회 (동기)
+     */
+    @Query("SELECT * FROM trade_history WHERE positionId IN " +
+           "(SELECT id FROM positions WHERE userId = :userId) " +
+           "AND timestamp >= :startDate AND timestamp <= :endDate " +
+           "ORDER BY timestamp DESC")
+    List<TradeHistory> getTradesByDateRangeSync(long userId, Date startDate, Date endDate);
 }
 

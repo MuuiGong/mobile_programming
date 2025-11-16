@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 배경 원 -->
+    <item>
+        <shape android:shape="ring"
+            android:innerRadiusRatio="3"
+            android:thicknessRatio="8"
+            android:useLevel="false">
+            <solid android:color="@color/tds_bg_neutral" />
+        </shape>
+    </item>
+    
+    <!-- 진행률 원 (색상은 코드에서 동적으로 설정) -->
+    <item>
+        <shape android:shape="ring"
+            android:innerRadiusRatio="3"
+            android:thicknessRatio="8"
+            android:useLevel="true">
+            <solid android:color="@color/risk_safe" />
+        </shape>
+    </item>
+</layer-list>
+

@@ -37,6 +37,9 @@ public interface PositionDao {
     @Query("SELECT * FROM positions WHERE userId = :userId AND isClosed = 1 ORDER BY closeTime DESC")
     LiveData<List<Position>> getClosedPositions(long userId);
     
+    @Query("SELECT * FROM positions WHERE userId = :userId AND isClosed = 1 ORDER BY closeTime DESC")
+    List<Position> getClosedPositionsSync(long userId);
+    
     @Query("SELECT * FROM positions WHERE userId = :userId ORDER BY openTime DESC")
     LiveData<List<Position>> getAllPositions(long userId);
     

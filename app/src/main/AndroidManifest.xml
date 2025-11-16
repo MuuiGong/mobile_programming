@@ -31,6 +31,101 @@
             </intent-filter>
         </activity>
         
+        <activity
+            android:name=".ui.trading.TradingActivity"
+            android:exported="false"
+            android:theme="@style/Theme.RSquare.TDS"
+            android:parentActivityName=".ui.MainActivity" />
+        
+        <activity
+            android:name=".ui.dashboard.DashboardActivity"
+            android:exported="false"
+            android:theme="@style/Theme.RSquare.TDS"
+            android:parentActivityName=".ui.MainActivity" />
+        
+        <activity
+            android:name=".ui.history.HistoryActivity"
+            android:exported="false"
+            android:theme="@style/Theme.RSquare.TDS"
+            android:parentActivityName=".ui.MainActivity" />
+        
+        <activity
+            android:name=".ui.analysis.AnalysisActivity"
+            android:exported="false"
+            android:theme="@style/Theme.RSquare.TDS"
+            android:parentActivityName=".ui.MainActivity" />
+        
+        <activity
+            android:name=".ui.liquidation.LiquidationWarningActivity"
+            android:exported="false"
+            android:theme="@style/Theme.RSquare.TDS"
+            android:parentActivityName=".ui.MainActivity" />
+        
+        <activity
+            android:name=".ui.onboarding.OnboardingActivity"
+            android:exported="false"
+            android:theme="@style/Theme.RSquare.TDS" />
+        
+        <activity
+            android:name=".ui.onboarding.SurveyActivity"
+            android:exported="false"
+            android:theme="@style/Theme.RSquare.TDS"
+            android:parentActivityName=".ui.onboarding.OnboardingActivity" />
+        
+        <activity
+            android:name=".ui.asset.AssetSelectionActivity"
+            android:exported="false"
+            android:theme="@style/Theme.RSquare.TDS"
+            android:parentActivityName=".ui.MainActivity" />
+        
+        <activity
+            android:name=".ui.monitor.TradingMonitorActivity"
+            android:exported="false"
+            android:theme="@style/Theme.RSquare.TDS"
+            android:parentActivityName=".ui.MainActivity" />
+        
+        <activity
+            android:name=".ui.report.SessionReportActivity"
+            android:exported="false"
+            android:theme="@style/Theme.RSquare.TDS"
+            android:parentActivityName=".ui.MainActivity" />
+        
+        <activity
+            android:name=".ui.portfolio.PortfolioActivity"
+            android:exported="false"
+            android:theme="@style/Theme.RSquare.TDS"
+            android:parentActivityName=".ui.MainActivity" />
+        
+        <activity
+            android:name=".ui.backtest.BacktestActivity"
+            android:exported="false"
+            android:theme="@style/Theme.RSquare.TDS"
+            android:parentActivityName=".ui.MainActivity" />
+        
+        <activity
+            android:name=".ui.settings.DashboardSettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.RSquare.TDS"
+            android:parentActivityName=".ui.MainActivity" />
+        
+        <activity
+            android:name=".ui.settings.RiskSettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.RSquare.TDS"
+            android:parentActivityName=".ui.MainActivity" />
+        
+        <activity
+            android:name=".ui.coach.AICoachActivity"
+            android:exported="false"
+            android:theme="@style/Theme.RSquare.TDS"
+            android:parentActivityName=".ui.MainActivity" />
+        
+        <activity
+            android:name=".ui.export.ExportActivity"
+            android:exported="false"
+            android:theme="@style/Theme.RSquare.TDS"
+            android:parentActivityName=".ui.MainActivity" />
+        
     </application>
 
 </manifest>

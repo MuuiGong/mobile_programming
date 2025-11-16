@@ -230,36 +230,29 @@ public class ChartFragment extends Fragment implements ChartWebViewInterface.Cha
                         // 진입가가 설정되지 않았으면 현재 가격으로 설정
                         if (etEntryPrice.getText().toString().isEmpty()) {
                             etEntryPrice.setText(String.valueOf(price));
-                            callJavaScript("if (typeof setEntryPrice === 'function') { setEntryPrice(" + price + "); }");
+                            viewModel.updateEntryPrice(price);
                         }
                         
                         // TP/SL 초기값 설정 (현재가 기준으로 자동 계산)
                         if (etTakeProfit.getText().toString().isEmpty()) {
                             double tp = price * 1.02; // 현재가의 2% 위
                             etTakeProfit.setText(String.valueOf(tp));
-                            callJavaScript("if (typeof setTakeProfit === 'function') { setTakeProfit(" + tp + "); }");
-                        } else {
-                            // 이미 값이 있으면 JavaScript에 전달
-                            try {
-                                double tp = Double.parseDouble(etTakeProfit.getText().toString());
-                                callJavaScript("if (typeof setTakeProfit === 'function') { setTakeProfit(" + tp + "); }");
-                            } catch (NumberFormatException e) {
-                                // 무시
-                            }
+                            viewModel.updateTakeProfit(tp);
                         }
                         
                         if (etStopLoss.getText().toString().isEmpty()) {
                             double sl = price * 0.98; // 현재가의 2% 아래
                             etStopLoss.setText(String.valueOf(sl));
-                            callJavaScript("if (typeof setStopLoss === 'function') { setStopLoss(" + sl + "); }");
-                        } else {
-                            // 이미 값이 있으면 JavaScript에 전달
-                            try {
-                                double sl = Double.parseDouble(etStopLoss.getText().toString());
-                                callJavaScript("if (typeof setStopLoss === 'function') { setStopLoss(" + sl + "); }");
-                            } catch (NumberFormatException e) {
-                                // 무시
-                            }
+                            viewModel.updateStopLoss(sl);
+                        }
+                        
+                        // 차트 라인 업데이트
+                        updateChartLines();
+                        
+                        // 포지션 타입 설정
+                        Boolean isLong = viewModel.getIsLong().getValue();
+                        if (isLong != null) {
+                            callJavaScript("if (typeof setPositionType === 'function') { setPositionType(" + isLong + "); }");
                         }
                     }
                     
@@ -325,7 +318,8 @@ public class ChartFragment extends Fragment implements ChartWebViewInterface.Cha
                 // 진입가가 설정되지 않았으면 현재 가격으로 설정
                 if (etEntryPrice.getText().toString().isEmpty()) {
                     etEntryPrice.setText(String.valueOf(price));
-                    callJavaScript("if (typeof setEntryPrice === 'function') { setEntryPrice(" + price + "); }");
+                    viewModel.updateEntryPrice(price);
+                    updateChartLines();
                 }
             }
         });
@@ -392,6 +386,7 @@ public class ChartFragment extends Fragment implements ChartWebViewInterface.Cha
                 btnShort.setChecked(false);
                 viewModel.setIsLong(true);
                 callJavaScript("if (typeof setPositionType === 'function') { setPositionType(true); }");
+                calculateRiskReward();
             }
         });
         
@@ -401,6 +396,7 @@ public class ChartFragment extends Fragment implements ChartWebViewInterface.Cha
                 btnLong.setChecked(false);
                 viewModel.setIsLong(false);
                 callJavaScript("if (typeof setPositionType === 'function') { setPositionType(false); }");
+                calculateRiskReward();
             }
         });
         
@@ -691,7 +687,7 @@ public class ChartFragment extends Fragment implements ChartWebViewInterface.Cha
         try {
             double price = Double.parseDouble(etEntryPrice.getText().toString());
             viewModel.updateEntryPrice(price);
-            callJavaScript("if (typeof setEntryPrice === 'function') { setEntryPrice(" + price + "); }");
+            updateChartLines();
         } catch (NumberFormatException e) {
             // 잘못된 입력 무시
         }
@@ -704,7 +700,7 @@ public class ChartFragment extends Fragment implements ChartWebViewInterface.Cha
         try {
             double price = Double.parseDouble(etTakeProfit.getText().toString());
             viewModel.updateTakeProfit(price);
-            callJavaScript("if (typeof setTakeProfit === 'function') { setTakeProfit(" + price + "); }");
+            updateChartLines();
         } catch (NumberFormatException e) {
             // 잘못된 입력 무시
         }
@@ -717,9 +713,31 @@ public class ChartFragment extends Fragment implements ChartWebViewInterface.Cha
         try {
             double price = Double.parseDouble(etStopLoss.getText().toString());
             viewModel.updateStopLoss(price);
-            callJavaScript("if (typeof setStopLoss === 'function') { setStopLoss(" + price + "); }");
+            updateChartLines();
         } catch (NumberFormatException e) {
             // 잘못된 입력 무시
+        }
+    }
+    
+    /**
+     * 차트 라인 업데이트 (프롬프트 요구사항: updateLines 함수)
+     */
+    private void updateChartLines() {
+        try {
+            double entry = viewModel.getEntryPrice().getValue() != null ? 
+                viewModel.getEntryPrice().getValue() : 0;
+            double tp = viewModel.getTakeProfit().getValue() != null ? 
+                viewModel.getTakeProfit().getValue() : 0;
+            double sl = viewModel.getStopLoss().getValue() != null ? 
+                viewModel.getStopLoss().getValue() : 0;
+            
+            String jsCode = String.format(Locale.US,
+                "if (typeof updateLines === 'function') { updateLines(%f, %f, %f); }",
+                entry, tp, sl
+            );
+            callJavaScript(jsCode);
+        } catch (Exception e) {
+            android.util.Log.e("ChartFragment", "Error updating chart lines", e);
         }
     }
     
@@ -797,6 +815,7 @@ public class ChartFragment extends Fragment implements ChartWebViewInterface.Cha
         requireActivity().runOnUiThread(() -> {
             etEntryPrice.setText(String.valueOf(price));
             viewModel.updateEntryPrice(price);
+            calculateRiskReward();
         });
     }
     
@@ -805,6 +824,7 @@ public class ChartFragment extends Fragment implements ChartWebViewInterface.Cha
         requireActivity().runOnUiThread(() -> {
             etTakeProfit.setText(String.valueOf(price));
             viewModel.updateTakeProfit(price);
+            calculateRiskReward();
         });
     }
     
@@ -813,6 +833,7 @@ public class ChartFragment extends Fragment implements ChartWebViewInterface.Cha
         requireActivity().runOnUiThread(() -> {
             etStopLoss.setText(String.valueOf(price));
             viewModel.updateStopLoss(price);
+            calculateRiskReward();
         });
     }
     

@@ -7,14 +7,20 @@ import androidx.annotation.NonNull;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import com.example.rsquare.data.local.AppDatabase;
 import com.example.rsquare.data.local.entity.Position;
 import com.example.rsquare.data.local.entity.TradeHistory;
+import com.example.rsquare.data.local.entity.User;
+import com.example.rsquare.data.local.entity.UserSettings;
 import com.example.rsquare.data.remote.model.CoinPrice;
 import com.example.rsquare.data.repository.MarketDataRepository;
 import com.example.rsquare.data.repository.TradingRepository;
 import com.example.rsquare.data.repository.UserRepository;
+import com.example.rsquare.domain.MarginCalculator;
 import com.example.rsquare.util.NotificationHelper;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -85,37 +91,200 @@ public class TradingMonitorWorker extends Worker {
     }
     
     /**
-     * 포지션 평가 및 자동 청산
+     * 포지션 평가 및 자동 청산 (프롬프트 요구사항 반영)
      */
     private void evaluatePosition(Position position, double currentPrice) {
-        // TP 도달 체크
+        // 사용자 및 설정 조회
+        User user = userRepository.getUserSync(position.getUserId());
+        if (user == null) {
+            Log.e(TAG, "User not found for position " + position.getId());
+            return;
+        }
+        
+        AppDatabase db = AppDatabase.getInstance(getApplicationContext());
+        UserSettings settings = db.userSettingsDao().getSettingsByUserIdSync(position.getUserId());
+        
+        double totalBalance = user.getBalance();
+        
+        // 1. TP 도달 체크
         if (position.isTakeProfitReached(currentPrice)) {
             Log.d(TAG, "Take profit reached for position " + position.getId());
-            closePosition(position, currentPrice, TradeHistory.TradeType.CLOSE_TP);
+            closePosition(position, currentPrice, TradeHistory.TradeType.CLOSE_TP, "TP_HIT");
             notificationHelper.notifyTPReached(position);
+            return;
         }
-        // SL 도달 체크
-        else if (position.isStopLossReached(currentPrice)) {
+        
+        // 2. SL 도달 체크
+        if (position.isStopLossReached(currentPrice)) {
             Log.d(TAG, "Stop loss reached for position " + position.getId());
-            closePosition(position, currentPrice, TradeHistory.TradeType.CLOSE_SL);
+            closePosition(position, currentPrice, TradeHistory.TradeType.CLOSE_SL, "SL_HIT");
             notificationHelper.notifySLReached(position);
+            return;
+        }
+        
+        // 3. 마진콜 및 청산 체크 (선물 거래만)
+        if ("FUTURES".equals(position.getTradeType()) && position.getLeverage() > 1) {
+            // 사용 마진 계산 (증거금)
+            double usedMargin = MarginCalculator.calculateUsedMargin(
+                position.getEntryPrice(),
+                position.getQuantity(),
+                position.getLeverage()
+            );
+            
+            // 미실현 손익 계산
+            double unrealizedPnL = position.calculateUnrealizedPnL(currentPrice);
+            
+            // 총 마진 = 사용자의 잔고 (증거금으로 사용된 부분)
+            // 가용 마진 = 총 마진 + 미실현 손익 - 사용 마진
+            double totalMargin = totalBalance; // 사용자의 총 잔고
+            double availableMargin = MarginCalculator.calculateAvailableMargin(
+                totalMargin,
+                usedMargin,
+                unrealizedPnL
+            );
+            
+            // 마진 비율 계산
+            double marginRatio = MarginCalculator.calculateMarginRatio(availableMargin, usedMargin);
+            
+            // 청산 가격 계산
+            double liquidationPrice = MarginCalculator.calculateLiquidationPrice(
+                position.getEntryPrice(),
+                position.getQuantity(),
+                position.getLeverage(),
+                usedMargin, // 증거금
+                position.isLong()
+            );
+            
+            // 자동 청산 체크 (마진 비율 0% 이하)
+            if (MarginCalculator.shouldLiquidate(marginRatio)) {
+                Log.w(TAG, "Liquidation triggered! Position " + position.getId() + 
+                    ", Margin ratio: " + marginRatio + "%");
+                closePosition(position, currentPrice, TradeHistory.TradeType.CLOSE_SL, "MARGIN_CALL_LIQUIDATION");
+                notificationHelper.notifyLiquidation(position, liquidationPrice);
+                return;
+            }
+            
+            // 마진콜 경고 체크 (마진 비율 50% 이하)
+            if (MarginCalculator.isMarginCall(marginRatio)) {
+                Log.w(TAG, "Margin call warning! Position " + position.getId() + 
+                    ", Margin ratio: " + marginRatio + "%");
+                notificationHelper.notifyMarginWarning(position, marginRatio);
+            }
+            
+            // 마진 상태에 따른 경고 (20% 이하)
+            MarginCalculator.MarginStatus status = MarginCalculator.getMarginStatus(marginRatio);
+            if (status == MarginCalculator.MarginStatus.CRITICAL) {
+                Log.w(TAG, "Critical margin status! Position " + position.getId() + 
+                    ", Margin ratio: " + marginRatio + "%");
+                notificationHelper.notifyMarginCritical(position, marginRatio, liquidationPrice);
+            }
+        }
+        
+        // 4. 타임아웃 체크
+        if (settings != null && !"UNLIMITED".equals(settings.getMaxPositionDuration())) {
+            long durationMs = System.currentTimeMillis() - position.getOpenTime().getTime();
+            long maxDurationMs = parseDuration(settings.getMaxPositionDuration());
+            
+            if (maxDurationMs > 0 && durationMs >= maxDurationMs) {
+                Log.d(TAG, "Position timeout for position " + position.getId());
+                closePosition(position, currentPrice, TradeHistory.TradeType.CLOSE_SL, "TIMEOUT");
+                notificationHelper.notifyTimeout(position);
+                return;
+            }
+        }
+        
+        // 5. 일일 손실 한도 체크 (전체 포지션에 대해)
+        if (settings != null) {
+            double dailyLoss = calculateDailyLoss(position.getUserId());
+            double dailyLossLimit = totalBalance * (settings.getDailyLossLimit() / 100.0);
+            
+            if (dailyLoss >= dailyLossLimit) {
+                Log.w(TAG, "Daily loss limit reached: " + dailyLoss + " / " + dailyLossLimit);
+                // 모든 활성 포지션 종료
+                closeAllPositions(position.getUserId(), currentPrice, "DAILY_LOSS_LIMIT");
+                return;
+            }
         }
     }
     
     /**
-     * 포지션 청산
+     * 일일 손실 계산
      */
-    private void closePosition(Position position, double closedPrice, TradeHistory.TradeType closeType) {
+    private double calculateDailyLoss(long userId) {
+        Calendar today = Calendar.getInstance();
+        today.set(Calendar.HOUR_OF_DAY, 0);
+        today.set(Calendar.MINUTE, 0);
+        today.set(Calendar.SECOND, 0);
+        today.set(Calendar.MILLISECOND, 0);
+        
+        Date startOfDay = today.getTime();
+        
+        AppDatabase db = AppDatabase.getInstance(getApplicationContext());
+        List<TradeHistory> todayTrades = db.tradeHistoryDao().getTradesByDateRangeSync(
+            userId, startOfDay, new Date()
+        );
+        
+        double totalLoss = 0.0;
+        for (TradeHistory trade : todayTrades) {
+            if (trade.getPnl() < 0) {
+                totalLoss += Math.abs(trade.getPnl());
+            }
+        }
+        
+        return totalLoss;
+    }
+    
+    /**
+     * 지속 시간 파싱 (예: "1H", "4H", "1D")
+     */
+    private long parseDuration(String duration) {
+        if (duration == null || "UNLIMITED".equals(duration)) {
+            return 0;
+        }
+        
+        try {
+            if (duration.endsWith("H")) {
+                int hours = Integer.parseInt(duration.substring(0, duration.length() - 1));
+                return hours * 60 * 60 * 1000L;
+            } else if (duration.endsWith("D")) {
+                int days = Integer.parseInt(duration.substring(0, duration.length() - 1));
+                return days * 24 * 60 * 60 * 1000L;
+            } else if (duration.endsWith("M")) {
+                int minutes = Integer.parseInt(duration.substring(0, duration.length() - 1));
+                return minutes * 60 * 1000L;
+            }
+        } catch (NumberFormatException e) {
+            Log.e(TAG, "Invalid duration format: " + duration);
+        }
+        
+        return 0;
+    }
+    
+    /**
+     * 모든 활성 포지션 종료
+     */
+    private void closeAllPositions(long userId, double currentPrice, String reason) {
+        List<Position> activePositions = tradingRepository.getActivePositionsSync(userId);
+        for (Position pos : activePositions) {
+            closePosition(pos, currentPrice, TradeHistory.TradeType.CLOSE_SL, reason);
+        }
+    }
+    
+    /**
+     * 포지션 청산 (프롬프트 요구사항 반영)
+     */
+    private void closePosition(Position position, double closedPrice, TradeHistory.TradeType closeType, String exitReason) {
         // 포지션 업데이트
         position.setClosed(true);
-        position.setCloseTime(new java.util.Date());
+        position.setCloseTime(new Date());
         position.setClosedPrice(closedPrice);
+        position.setExitReason(exitReason);
         
         double pnl = position.calculateUnrealizedPnL(closedPrice);
         position.setPnl(pnl);
         
         // DB 업데이트 (동기)
-        tradingRepository.updatePosition(position);
+        tradingRepository.updatePositionSync(position);
         
         // 거래 히스토리 기록
         TradeHistory tradeHistory = new TradeHistory();
@@ -125,11 +294,15 @@ public class TradingMonitorWorker extends Worker {
         tradeHistory.setPrice(closedPrice);
         tradeHistory.setQuantity(position.getQuantity());
         tradeHistory.setPnl(pnl);
+        tradingRepository.insertTradeHistorySync(tradeHistory);
         
         // 잔고 업데이트
         userRepository.addToBalance(position.getUserId(), pnl);
         
-        Log.d(TAG, "Position closed: " + position.getId() + ", PnL: " + pnl);
+        Log.d(TAG, String.format(
+            "Position closed: %d, Exit: %s, PnL: %.2f, Price: %.2f",
+            position.getId(), exitReason, pnl, closedPrice
+        ));
     }
     
     /**

@@ -50,6 +50,13 @@ public class TradingRepository {
     }
     
     /**
+     * 종료된 포지션 조회 (동기)
+     */
+    public List<Position> getClosedPositionsSync(long userId) {
+        return positionDao.getClosedPositionsSync(userId);
+    }
+    
+    /**
      * 모든 포지션 조회
      */
     public LiveData<List<Position>> getAllPositions(long userId) {
@@ -68,6 +75,13 @@ public class TradingRepository {
      */
     public LiveData<Position> getPositionById(long positionId) {
         return positionDao.getPositionById(positionId);
+    }
+    
+    /**
+     * 포지션 ID로 조회 (동기)
+     */
+    public Position getPositionByIdSync(long positionId) {
+        return positionDao.getPositionByIdSync(positionId);
     }
     
     /**
@@ -136,6 +150,29 @@ public class TradingRepository {
         AppDatabase.databaseWriteExecutor.execute(() -> {
             positionDao.update(position);
         });
+    }
+    
+    /**
+     * 포지션 업데이트 (동기)
+     */
+    public void updatePositionSync(Position position) {
+        positionDao.update(position);
+    }
+    
+    /**
+     * 거래 히스토리 삽입
+     */
+    public void insertTradeHistory(TradeHistory tradeHistory) {
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            tradeHistoryDao.insert(tradeHistory);
+        });
+    }
+    
+    /**
+     * 거래 히스토리 삽입 (동기)
+     */
+    public long insertTradeHistorySync(TradeHistory tradeHistory) {
+        return tradeHistoryDao.insert(tradeHistory);
     }
     
     /**

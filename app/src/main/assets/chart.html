@@ -1,650 +1,311 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TradingView Chart</title>
+    <title>R² Chart - TradingView</title>
+    
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         html, body {
             width: 100%;
             height: 100%;
-            overflow: hidden;
-            background-color: #131722;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #1A1F2E;
+            overflow: hidden;
         }
-        
-        #chart-container {
+
+        #container {
             width: 100%;
             height: 100%;
-            position: relative;
-            background-color: #131722;
+            display: flex;
+            flex-direction: column;
         }
-        
-        #tv_chart_container {
-            width: 100%;
-            height: 100%;
-        }
-        
-        #area-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
+
+        /* 상단 정보 바 */
+        .top-bar {
+            background-color: #1C1F26;
+            border-bottom: 1px solid #2D3139;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             z-index: 100;
         }
-        
-        #price-line-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
+
+        .coin-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .coin-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #E1E8ED;
+        }
+
+        .current-price {
+            font-size: 16px;
+            font-weight: 600;
+            color: #26a69a;
+        }
+
+        .price-change {
+            font-size: 12px;
+            color: #26a69a;
+        }
+
+        /* 차트 컨테이너 */
+        #chart-container {
+            flex: 1;
+            background-color: #1A1F2E;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #tradingview-widget {
             width: 100%;
             height: 100%;
-            pointer-events: none;
-            z-index: 1000;
+            border: none;
+        }
+
+        /* 하단 정보 패널 */
+        .bottom-bar {
+            background-color: #1C1F26;
+            border-top: 1px solid #2D3139;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            z-index: 100;
+        }
+
+        .trade-info {
+            display: flex;
+            gap: 24px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .info-label {
+            font-size: 10px;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: #E1E8ED;
+        }
+
+        .info-value.positive {
+            color: #26a69a;
+        }
+
+        .info-value.negative {
+            color: #ef5350;
+        }
+
+        .rr-display {
+            text-align: center;
+        }
+
+        .rr-label {
+            font-size: 10px;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .rr-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #f7931a;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+        }
+
+        .action-btn.entry {
+            background-color: #9E9E9E;
+        }
+
+        .action-btn.tp {
+            background-color: #26a69a;
+        }
+
+        .action-btn.sl {
+            background-color: #ef5350;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
     </style>
-    <script type="text/javascript" src="lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
-    <div id="chart-container">
-        <div id="tv_chart_container"></div>
-        <canvas id="area-overlay"></canvas>
-        <div id="price-line-overlay"></div>
+    <div id="container">
+        <!-- 상단 정보 바 -->
+        <div class="top-bar">
+            <div class="coin-info">
+                <div class="coin-name">BITCOIN</div>
+                <div class="current-price" id="currentPrice">$95,902.92</div>
+                <div class="price-change" id="priceChange">+0.85%</div>
+            </div>
+        </div>
+
+        <!-- 차트 컨테이너 -->
+        <div id="chart-container">
+            <iframe 
+                id="tradingview-widget"
+                src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview-widget&amp;symbol=BINANCE%3ABTCUSDT&amp;interval=60&amp;hidesidetoolbar=0&amp;symboledit=0&amp;saveimage=0&amp;toolbarbg=%231C1F26&amp;studies=%5B%22Volume%40tv-basicstudies%22%5D&amp;theme=dark&amp;style=1&amp;timezone=Asia%2FSeoul&amp;studies_overrides=%7B%7D&amp;overrides=%7B%22paneProperties.background%22%3A%22%231A1F2E%22%2C%22paneProperties.backgroundType%22%3A%22solid%22%2C%22paneProperties.vertGridProperties.color%22%3A%22%232D3139%22%2C%22paneProperties.horzGridProperties.color%22%3A%22%232D3139%22%2C%22scalesProperties.textColor%22%3A%22%23888%22%2C%22mainSeriesProperties.candleStyle.upColor%22%3A%22%2326a69a%22%2C%22mainSeriesProperties.candleStyle.downColor%22%3A%22%23ef5350%22%2C%22mainSeriesProperties.candleStyle.borderUpColor%22%3A%22%2326a69a%22%2C%22mainSeriesProperties.candleStyle.borderDownColor%22%3A%22%23ef5350%22%2C%22mainSeriesProperties.candleStyle.wickUpColor%22%3A%22%2326a69a%22%2C%22mainSeriesProperties.candleStyle.wickDownColor%22%3A%22%23ef5350%22%7D&amp;locale=ko&amp;utm_source=&amp;utm_medium=widget&amp;utm_campaign=chart&amp;utm_term=BINANCE%3ABTCUSDT"
+                frameborder="0"
+                allowtransparency="true"
+                scrolling="no"
+                allowfullscreen></iframe>
+        </div>
+
+        <!-- 하단 정보 패널 -->
+        <div class="bottom-bar">
+            <div class="trade-info">
+                <div class="info-item">
+                    <span class="info-label">Entry</span>
+                    <span class="info-value" id="entryInfo">$95,836.00</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">TP</span>
+                    <span class="info-value" id="tpInfo">$97,752.72</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">SL</span>
+                    <span class="info-value" id="slInfo">$93,919.28</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">P&L</span>
+                    <span class="info-value positive" id="pnlInfo">+1,916.72 USDT</span>
+                </div>
+            </div>
+
+            <div class="rr-display">
+                <div class="rr-label">R:R Ratio</div>
+                <div class="rr-value" id="rrValue">1.07</div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="action-btn entry" id="entryBtn">진입</button>
+                <button class="action-btn tp" id="tpBtn">익절</button>
+                <button class="action-btn sl" id="slBtn">손절</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Android Bridge
-        const AndroidBridge = window.Android || {
-            onPriceChanged: (price) => console.log('Price:', price),
-            onEntryPriceChanged: (price) => console.log('Entry:', price),
-            onTakeProfitChanged: (price) => console.log('TP:', price),
-            onStopLossChanged: (price) => console.log('SL:', price)
+        // ========== 거래 데이터 ==========
+        let tradeData = {
+            entry: 95836.00,
+            tp: 97752.72,
+            sl: 93919.28,
+            currentPrice: 95902.92
         };
 
-        // 전역 변수
-        let chart = null;
-        let candlestickSeries = null;
-        let areaOverlayCanvas = null;
-        let areaOverlayCtx = null;
-        
-        let currentPriceLine = null;
-        let tpPriceLine = null;
-        let slPriceLine = null;
-        
-        let currentPrice = 0;
-        let entryPrice = 0;
-        let takeProfit = 0;
-        let stopLoss = 0;
-        
-        let isDragging = false;
-        let draggedElement = null;
-        let dragStartY = 0;
+        // ========== 거래 정보 업데이트 ==========
+        function updateTradeInfo() {
+            document.getElementById('entryInfo').textContent = `$${tradeData.entry.toFixed(2)}`;
+            document.getElementById('tpInfo').textContent = `$${tradeData.tp.toFixed(2)}`;
+            document.getElementById('slInfo').textContent = `$${tradeData.sl.toFixed(2)}`;
 
-        // 차트 초기화
-        function initChart() {
-            const container = document.getElementById('tv_chart_container');
-            if (!container) {
-                console.error('Chart container not found');
-                return;
-            }
+            // R:R 계산
+            const rrRatio = (tradeData.tp - tradeData.entry) / (tradeData.entry - tradeData.sl);
+            document.getElementById('rrValue').textContent = rrRatio.toFixed(2);
 
-            if (typeof LightweightCharts === 'undefined' || !LightweightCharts.createChart) {
-                console.error('LightweightCharts library is not loaded');
-                setTimeout(initChart, 100);
-                return;
-            }
-
-            const width = container.clientWidth || window.innerWidth || 800;
-            const height = container.clientHeight || window.innerHeight || 600;
-
-            try {
-                // 차트 생성
-                chart = LightweightCharts.createChart(container, {
-                    width: width,
-                    height: height,
-                    layout: {
-                        background: { 
-                            type: LightweightCharts.ColorType.Solid,
-                            color: '#131722' 
-                        },
-                        textColor: '#d1d4dc',
-                        fontSize: 12,
-                        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    },
-                    grid: {
-                        vertLines: { color: '#2a2e39', style: LightweightCharts.LineStyle.Solid },
-                        horzLines: { color: '#2a2e39', style: LightweightCharts.LineStyle.Solid },
-                    },
-                    crosshair: {
-                        mode: LightweightCharts.CrosshairMode.Normal,
-                        vertLine: { color: '#758696', width: 1, style: LightweightCharts.LineStyle.Dashed },
-                        horzLine: { color: '#758696', width: 1, style: LightweightCharts.LineStyle.Dashed },
-                    },
-                    rightPriceScale: {
-                        borderColor: '#2a2e39',
-                        scaleMargins: { top: 0.1, bottom: 0.1 },
-                    },
-                    timeScale: {
-                        borderColor: '#2a2e39',
-                        timeVisible: true,
-                        secondsVisible: false,
-                        rightOffset: 1,
-                        barSpacing: 6,
-                    },
-                });
-
-                // 캔들스틱 시리즈 추가
-                if (chart.addCandlestickSeries) {
-                    candlestickSeries = chart.addCandlestickSeries({
-                        upColor: '#26a69a',
-                        downColor: '#ef5350',
-                        borderVisible: true,
-                        borderUpColor: '#26a69a',
-                        borderDownColor: '#ef5350',
-                        wickUpColor: '#26a69a',
-                        wickDownColor: '#ef5350',
-                        priceFormat: {
-                            type: 'price',
-                            precision: 2,
-                            minMove: 0.01,
-                        },
-                        lastPriceAnimation: LightweightCharts.LastPriceAnimationMode.Continuous,
-                    });
-                } else if (chart.addSeries) {
-                    try {
-                        candlestickSeries = chart.addSeries('Candlestick', {
-                            upColor: '#26a69a',
-                            downColor: '#ef5350',
-                            borderVisible: true,
-                            borderUpColor: '#26a69a',
-                            borderDownColor: '#ef5350',
-                            wickUpColor: '#26a69a',
-                            wickDownColor: '#ef5350',
-                            priceFormat: {
-                                type: 'price',
-                                precision: 2,
-                                minMove: 0.01,
-                            },
-                            lastPriceAnimation: LightweightCharts.LastPriceAnimationMode.Continuous,
-                        });
-                    } catch (e) {
-                        console.error('Failed to add candlestick series:', e);
-                        return;
-                    }
-                }
-
-                if (!candlestickSeries) {
-                    console.error('Failed to create candlestick series');
-                    return;
-                }
-
-                // 영역 오버레이 캔버스 초기화
-                areaOverlayCanvas = document.getElementById('area-overlay');
-                if (areaOverlayCanvas) {
-                    areaOverlayCtx = areaOverlayCanvas.getContext('2d');
-                    updateCanvasSize();
-                }
-
-                // 리사이즈 처리
-                const resizeObserver = new ResizeObserver(() => {
-                    if (chart && container) {
-                        const newWidth = container.clientWidth || window.innerWidth;
-                        const newHeight = container.clientHeight || window.innerHeight;
-                        if (newWidth > 0 && newHeight > 0) {
-                            chart.applyOptions({ width: newWidth, height: newHeight });
-                            updateCanvasSize();
-                            updatePriceLines();
-                            updateDragMarkers();
-                            drawAreas();
-                        }
-                    }
-                });
-                resizeObserver.observe(container);
-
-                // 이벤트 리스너
-                chart.subscribeCrosshairMove(() => {
-                    updateDragMarkers();
-                });
-
-                chart.timeScale().subscribeVisibleTimeRangeChange(() => {
-                    updateDragMarkers();
-                    updatePriceLines();
-                    drawAreas();
-                });
-
-                // 드래그 핸들러 설정
-                setupDragHandlers();
-
-                console.log('Chart initialized successfully');
-            } catch (error) {
-                console.error('Error initializing chart:', error);
-            }
+            // P&L 계산
+            const pnl = tradeData.tp - tradeData.entry;
+            const pnlElement = document.getElementById('pnlInfo');
+            pnlElement.textContent = `${pnl >= 0 ? '+' : ''}${pnl.toFixed(2)} USDT`;
+            pnlElement.className = pnl >= 0 ? 'info-value positive' : 'info-value negative';
         }
 
-        // 캔버스 크기 업데이트
-        function updateCanvasSize() {
-            if (!areaOverlayCanvas) return;
-            const container = document.getElementById('tv_chart_container');
-            if (container) {
-                const rect = container.getBoundingClientRect();
-                areaOverlayCanvas.width = rect.width;
-                areaOverlayCanvas.height = rect.height;
+        // ========== 버튼 클릭 ==========
+        document.getElementById('entryBtn').addEventListener('click', () => {
+            if (window.Android) {
+                window.Android.onEntryPriceChanged(tradeData.entry);
             }
-        }
+        });
 
-        // 가격 라인 업데이트
-        function updatePriceLines() {
-            if (!chart || !candlestickSeries) return;
-
-            // 기존 라인 제거
-            if (currentPriceLine !== null) {
-                candlestickSeries.removePriceLine(currentPriceLine);
-                currentPriceLine = null;
+        document.getElementById('tpBtn').addEventListener('click', () => {
+            if (window.Android) {
+                window.Android.onTakeProfitChanged(tradeData.tp);
             }
-            if (tpPriceLine !== null) {
-                candlestickSeries.removePriceLine(tpPriceLine);
-                tpPriceLine = null;
+        });
+
+        document.getElementById('slBtn').addEventListener('click', () => {
+            if (window.Android) {
+                window.Android.onStopLossChanged(tradeData.sl);
             }
-            if (slPriceLine !== null) {
-                candlestickSeries.removePriceLine(slPriceLine);
-                slPriceLine = null;
+        });
+
+        // ========== 가격 업데이트 시뮬레이션 ==========
+        // 실제로는 WebSocket에서 받아옴
+        setInterval(() => {
+            const change = (Math.random() - 0.5) * 100;
+            tradeData.currentPrice = Math.max(tradeData.sl - 1000, Math.min(tradeData.tp + 1000, tradeData.currentPrice + change));
+            
+            document.getElementById('currentPrice').textContent = `$${tradeData.currentPrice.toFixed(2)}`;
+            const changePercent = ((tradeData.currentPrice - 95836) / 95836 * 100).toFixed(2);
+            document.getElementById('priceChange').textContent = `${changePercent >= 0 ? '+' : ''}${changePercent}%`;
+            document.getElementById('priceChange').style.color = changePercent >= 0 ? '#26a69a' : '#ef5350';
+            
+            if (window.Android) {
+                window.Android.onPriceChanged(tradeData.currentPrice);
             }
+        }, 1000);
 
-            // 현재가 라인
-            if (currentPrice > 0) {
-                currentPriceLine = candlestickSeries.createPriceLine({
-                    price: currentPrice,
-                    color: '#787b86',
-                    lineWidth: 1,
-                    lineStyle: LightweightCharts.LineStyle.Dashed,
-                    axisLabelVisible: true,
-                    title: currentPrice.toFixed(2),
-                });
+        // ========== Android 인터페이스 ==========
+        window.updateTradeData = function(entry, tp, sl) {
+            tradeData.entry = entry;
+            tradeData.tp = tp;
+            tradeData.sl = sl;
+            updateTradeInfo();
+        };
+
+        // 초기화 완료 알림
+        setTimeout(() => {
+            if (window.Android) {
+                window.Android.onPriceChanged(tradeData.currentPrice);
+                window.Android.onEntryPriceChanged(tradeData.entry);
+                window.Android.onTakeProfitChanged(tradeData.tp);
+                window.Android.onStopLossChanged(tradeData.sl);
             }
+        }, 1000);
 
-            // TP 라인
-            if (takeProfit > 0) {
-                tpPriceLine = candlestickSeries.createPriceLine({
-                    price: takeProfit,
-                    color: '#26a69a',
-                    lineWidth: 2,
-                    lineStyle: LightweightCharts.LineStyle.Solid,
-                    axisLabelVisible: true,
-                    title: 'TP ' + takeProfit.toFixed(2),
-                });
-            }
-
-            // SL 라인
-            if (stopLoss > 0) {
-                slPriceLine = candlestickSeries.createPriceLine({
-                    price: stopLoss,
-                    color: '#ef5350',
-                    lineWidth: 2,
-                    lineStyle: LightweightCharts.LineStyle.Solid,
-                    axisLabelVisible: true,
-                    title: 'SL ' + stopLoss.toFixed(2),
-                });
-            }
-        }
-
-        // 영역 그리기
-        function drawAreas() {
-            if (!areaOverlayCanvas || !areaOverlayCtx || !chart || !candlestickSeries) return;
-
-            updateCanvasSize();
-            areaOverlayCtx.clearRect(0, 0, areaOverlayCanvas.width, areaOverlayCanvas.height);
-
-            const entry = entryPrice > 0 ? entryPrice : currentPrice;
-            if (entry <= 0) return;
-
-            const visibleRange = chart.timeScale().getVisibleRange();
-            if (!visibleRange) return;
-
-            const entryY = candlestickSeries.priceToCoordinate(entry);
-            if (entryY === null) return;
-
-            const timeScale = chart.timeScale();
-            const leftX = timeScale.timeToCoordinate(visibleRange.from);
-            const rightX = timeScale.timeToCoordinate(visibleRange.to);
-
-            if (leftX === null || rightX === null) return;
-
-            // TP 영역
-            if (takeProfit > 0 && takeProfit > entry) {
-                const tpY = candlestickSeries.priceToCoordinate(takeProfit);
-                if (tpY !== null) {
-                    areaOverlayCtx.fillStyle = 'rgba(38, 166, 154, 0.3)';
-                    areaOverlayCtx.beginPath();
-                    areaOverlayCtx.moveTo(leftX, entryY);
-                    areaOverlayCtx.lineTo(rightX, entryY);
-                    areaOverlayCtx.lineTo(rightX, tpY);
-                    areaOverlayCtx.lineTo(leftX, tpY);
-                    areaOverlayCtx.closePath();
-                    areaOverlayCtx.fill();
-                }
-            }
-
-            // SL 영역
-            if (stopLoss > 0 && stopLoss < entry) {
-                const slY = candlestickSeries.priceToCoordinate(stopLoss);
-                if (slY !== null) {
-                    areaOverlayCtx.fillStyle = 'rgba(239, 83, 80, 0.3)';
-                    areaOverlayCtx.beginPath();
-                    areaOverlayCtx.moveTo(leftX, entryY);
-                    areaOverlayCtx.lineTo(rightX, entryY);
-                    areaOverlayCtx.lineTo(rightX, slY);
-                    areaOverlayCtx.lineTo(leftX, slY);
-                    areaOverlayCtx.closePath();
-                    areaOverlayCtx.fill();
-                }
-            }
-        }
-
-        // 드래그 마커 업데이트
-        function updateDragMarkers() {
-            if (!chart || !candlestickSeries) return;
-
-            const overlay = document.getElementById('price-line-overlay');
-            if (!overlay) return;
-
-            overlay.innerHTML = '';
-
-            const container = document.getElementById('tv_chart_container');
-            if (!container) return;
-
-            // TP 드래그 영역
-            if (takeProfit > 0) {
-                const coordinate = candlestickSeries.priceToCoordinate(takeProfit);
-                if (coordinate !== null && coordinate >= 0) {
-                    const dragArea = document.createElement('div');
-                    dragArea.style.position = 'absolute';
-                    dragArea.style.left = '0';
-                    dragArea.style.top = (coordinate - 15) + 'px';
-                    dragArea.style.width = '100%';
-                    dragArea.style.height = '30px';
-                    dragArea.style.cursor = 'ns-resize';
-                    dragArea.style.zIndex = '1001';
-                    dragArea.style.pointerEvents = 'auto';
-                    
-                    dragArea.addEventListener('mousedown', (e) => {
-                        e.stopPropagation();
-                        handleDragStart(e, 'tp');
-                    });
-                    dragArea.addEventListener('touchstart', (e) => {
-                        e.stopPropagation();
-                        handleDragStart(e, 'tp');
-                    }, { passive: false });
-                    
-                    overlay.appendChild(dragArea);
-
-                    // TP 레이블
-                    const label = document.createElement('div');
-                    label.style.position = 'absolute';
-                    label.style.left = '10px';
-                    label.style.top = coordinate + 'px';
-                    label.style.transform = 'translateY(-50%)';
-                    label.style.backgroundColor = '#26a69a';
-                    label.style.color = '#ffffff';
-                    label.style.padding = '4px 8px';
-                    label.style.borderRadius = '4px';
-                    label.style.fontSize = '12px';
-                    label.style.fontWeight = '500';
-                    label.style.zIndex = '1002';
-                    label.style.pointerEvents = 'auto';
-                    label.style.cursor = 'ns-resize';
-                    label.style.whiteSpace = 'nowrap';
-                    label.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
-                    
-                    const entry = entryPrice > 0 ? entryPrice : currentPrice;
-                    const diff = takeProfit - entry;
-                    const diffPercent = entry > 0 ? ((diff / entry) * 100).toFixed(2) : '0.00';
-                    label.textContent = 'TP: ' + takeProfit.toFixed(2) + ' (+' + diffPercent + '%)';
-                    
-                    label.addEventListener('mousedown', (e) => {
-                        e.stopPropagation();
-                        handleDragStart(e, 'tp');
-                    });
-                    label.addEventListener('touchstart', (e) => {
-                        e.stopPropagation();
-                        handleDragStart(e, 'tp');
-                    }, { passive: false });
-                    
-                    overlay.appendChild(label);
-                }
-            }
-
-            // SL 드래그 영역
-            if (stopLoss > 0) {
-                const coordinate = candlestickSeries.priceToCoordinate(stopLoss);
-                if (coordinate !== null && coordinate >= 0) {
-                    const dragArea = document.createElement('div');
-                    dragArea.style.position = 'absolute';
-                    dragArea.style.left = '0';
-                    dragArea.style.top = (coordinate - 15) + 'px';
-                    dragArea.style.width = '100%';
-                    dragArea.style.height = '30px';
-                    dragArea.style.cursor = 'ns-resize';
-                    dragArea.style.zIndex = '1001';
-                    dragArea.style.pointerEvents = 'auto';
-                    
-                    dragArea.addEventListener('mousedown', (e) => {
-                        e.stopPropagation();
-                        handleDragStart(e, 'sl');
-                    });
-                    dragArea.addEventListener('touchstart', (e) => {
-                        e.stopPropagation();
-                        handleDragStart(e, 'sl');
-                    }, { passive: false });
-                    
-                    overlay.appendChild(dragArea);
-
-                    // SL 레이블
-                    const label = document.createElement('div');
-                    label.style.position = 'absolute';
-                    label.style.left = '10px';
-                    label.style.top = coordinate + 'px';
-                    label.style.transform = 'translateY(-50%)';
-                    label.style.backgroundColor = '#ef5350';
-                    label.style.color = '#ffffff';
-                    label.style.padding = '4px 8px';
-                    label.style.borderRadius = '4px';
-                    label.style.fontSize = '12px';
-                    label.style.fontWeight = '500';
-                    label.style.zIndex = '1002';
-                    label.style.pointerEvents = 'auto';
-                    label.style.cursor = 'ns-resize';
-                    label.style.whiteSpace = 'nowrap';
-                    label.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
-                    
-                    const entry = entryPrice > 0 ? entryPrice : currentPrice;
-                    const diff = stopLoss - entry;
-                    const diffPercent = entry > 0 ? ((diff / entry) * 100).toFixed(2) : '0.00';
-                    label.textContent = 'SL: ' + stopLoss.toFixed(2) + ' (' + diffPercent + '%)';
-                    
-                    label.addEventListener('mousedown', (e) => {
-                        e.stopPropagation();
-                        handleDragStart(e, 'sl');
-                    });
-                    label.addEventListener('touchstart', (e) => {
-                        e.stopPropagation();
-                        handleDragStart(e, 'sl');
-                    }, { passive: false });
-                    
-                    overlay.appendChild(label);
-                }
-            }
-        }
-
-        // 드래그 시작
-        function handleDragStart(e, type) {
-            isDragging = true;
-            draggedElement = type;
-            dragStartY = e.touches ? e.touches[0].clientY : e.clientY;
-            e.preventDefault();
-            e.stopPropagation();
-        }
-
-        // 드래그 이동
-        function handleDragMove(e) {
-            if (!isDragging || !draggedElement || !chart || !candlestickSeries) return;
-
-            const currentY = e.touches ? e.touches[0].clientY : e.clientY;
-            const container = document.getElementById('tv_chart_container');
-            if (!container) return;
-
-            const rect = container.getBoundingClientRect();
-            const relativeY = currentY - rect.top;
-
-            const price = candlestickSeries.coordinateToPrice(relativeY);
-            if (price === null) return;
-
-            if (draggedElement === 'tp') {
-                setTakeProfit(price);
-            } else if (draggedElement === 'sl') {
-                setStopLoss(price);
-            }
-
-            e.preventDefault();
-            e.stopPropagation();
-        }
-
-        // 드래그 종료
-        function handleDragEnd(e) {
-            if (!isDragging) return;
-            isDragging = false;
-            draggedElement = null;
-            updateDragMarkers();
-            e.preventDefault();
-            e.stopPropagation();
-        }
-
-        // 드래그 핸들러 설정
-        function setupDragHandlers() {
-            document.addEventListener('mousemove', handleDragMove);
-            document.addEventListener('mouseup', handleDragEnd);
-            document.addEventListener('touchmove', handleDragMove, { passive: false });
-            document.addEventListener('touchend', handleDragEnd);
-        }
-
-        // 가격 설정 함수들
-        function setCurrentPrice(price) {
-            currentPrice = parseFloat(price);
-            updatePriceLines();
-            updateDragMarkers();
-            drawAreas();
-        }
-
-        function setEntryPrice(price) {
-            entryPrice = parseFloat(price);
-            updatePriceLines();
-            updateDragMarkers();
-            drawAreas();
-        }
-
-        function setTakeProfit(price) {
-            takeProfit = parseFloat(price);
-            updatePriceLines();
-            updateDragMarkers();
-            drawAreas();
-            if (AndroidBridge && AndroidBridge.onTakeProfitChanged) {
-                AndroidBridge.onTakeProfitChanged(takeProfit);
-            }
-        }
-
-        function setStopLoss(price) {
-            stopLoss = parseFloat(price);
-            updatePriceLines();
-            updateDragMarkers();
-            drawAreas();
-            if (AndroidBridge && AndroidBridge.onStopLossChanged) {
-                AndroidBridge.onStopLossChanged(stopLoss);
-            }
-        }
-
-        // 차트 데이터 설정
-        function setOHLCData(ohlcDataString) {
-            if (!chart || !candlestickSeries) {
-                console.warn('Chart or series not initialized yet');
-                return;
-            }
-
-            try {
-                let data;
-                if (Array.isArray(ohlcDataString)) {
-                    data = ohlcDataString;
-                } else if (typeof ohlcDataString === 'string') {
-                    data = JSON.parse(ohlcDataString);
-                } else {
-                    console.error('Invalid OHLC data format');
-                    return;
-                }
-
-                if (!Array.isArray(data) || data.length === 0) {
-                    console.warn('No OHLC data provided');
-                    return;
-                }
-
-                const candles = [];
-                for (let i = 0; i < data.length; i++) {
-                    const kline = data[i];
-                    if (kline && kline.length >= 6) {
-                        candles.push({
-                            time: Math.floor(kline[0] / 1000),
-                            open: parseFloat(kline[1]),
-                            high: parseFloat(kline[2]),
-                            low: parseFloat(kline[3]),
-                            close: parseFloat(kline[4])
-                        });
-                    }
-                }
-
-                candlestickSeries.setData(candles);
-                chart.timeScale().fitContent();
-
-                setTimeout(() => {
-                    updatePriceLines();
-                    updateDragMarkers();
-                    drawAreas();
-                }, 100);
-            } catch (error) {
-                console.error('Error setting OHLC data:', error);
-            }
-        }
-
-        // 전역 함수로 노출
-        window.setCurrentPrice = setCurrentPrice;
-        window.setEntryPrice = setEntryPrice;
-        window.setTakeProfit = setTakeProfit;
-        window.setStopLoss = setStopLoss;
-        window.setOHLCData = setOHLCData;
-
-        // 초기화
-        function initialize() {
-            if (typeof LightweightCharts === 'undefined' || !LightweightCharts.createChart) {
-                console.warn('LightweightCharts not yet loaded, retrying...');
-                setTimeout(initialize, 100);
-                return;
-            }
-            initChart();
-        }
-
-        // 페이지 로드 시 초기화
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initialize);
-        } else {
-            initialize();
-        }
-
-        console.log('TradingView Chart script loaded');
+        // 초기 정보 업데이트
+        updateTradeInfo();
     </script>
 </body>
 </html>
-

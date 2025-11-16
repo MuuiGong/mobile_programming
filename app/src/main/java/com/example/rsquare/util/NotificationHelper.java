@@ -123,6 +123,88 @@ public class NotificationHelper {
     }
     
     /**
+     * 마진콜 알림 (프롬프트 요구사항)
+     */
+    public void notifyMarginCall(Position position) {
+        String title = "🚨 마진콜! 포지션 강제 종료";
+        String message = position.getSymbol() + " 포지션이 마진 부족으로 강제 종료되었습니다. " +
+            "손실: " + NumberFormatter.formatPnL(position.getPnl());
+        
+        sendNotification(
+            Constants.NOTIFICATION_ID_SL_REACHED + (int) position.getId() + 1000,
+            title,
+            message,
+            RSquareApplication.CHANNEL_TRADE_ID
+        );
+    }
+    
+    /**
+     * 마진 경고 알림
+     */
+    public void notifyMarginWarning(Position position, double marginRatio) {
+        String title = "⚠️ 마진 경고";
+        String message = position.getSymbol() + " 포지션 마진 비율: " + 
+            String.format("%.1f", marginRatio) + "% (50% 이하)";
+        
+        sendNotification(
+            Constants.NOTIFICATION_ID_RISK_WARNING + (int) position.getId(),
+            title,
+            message,
+            RSquareApplication.CHANNEL_TRADE_ID
+        );
+    }
+    
+    /**
+     * 타임아웃 알림 (프롬프트 요구사항)
+     */
+    public void notifyTimeout(Position position) {
+        String title = "⏰ 포지션 타임아웃";
+        String message = position.getSymbol() + " 포지션이 최대 지속 시간을 초과하여 종료되었습니다. " +
+            "손익: " + NumberFormatter.formatPnL(position.getPnl());
+        
+        sendNotification(
+            Constants.NOTIFICATION_ID_SL_REACHED + (int) position.getId() + 2000,
+            title,
+            message,
+            RSquareApplication.CHANNEL_TRADE_ID
+        );
+    }
+    
+    /**
+     * 청산 알림
+     */
+    public void notifyLiquidation(Position position, double liquidationPrice) {
+        String title = "💥 포지션 청산!";
+        String message = position.getSymbol() + " 포지션이 마진 부족으로 청산되었습니다. " +
+            "청산 가격: " + NumberFormatter.formatPrice(liquidationPrice) + 
+            " | 손실: " + NumberFormatter.formatPnL(position.getPnl());
+        
+        sendNotification(
+            Constants.NOTIFICATION_ID_SL_REACHED + (int) position.getId() + 3000,
+            title,
+            message,
+            RSquareApplication.CHANNEL_TRADE_ID
+        );
+    }
+    
+    /**
+     * 위험 마진 알림 (20% 이하)
+     */
+    public void notifyMarginCritical(Position position, double marginRatio, double liquidationPrice) {
+        String title = "🔴 위험 마진!";
+        String message = position.getSymbol() + " 포지션 마진 비율: " + 
+            String.format("%.1f", marginRatio) + "% (위험 수준) " +
+            "청산 가격: " + NumberFormatter.formatPrice(liquidationPrice);
+        
+        sendNotification(
+            Constants.NOTIFICATION_ID_RISK_WARNING + (int) position.getId() + 1000,
+            title,
+            message,
+            RSquareApplication.CHANNEL_TRADE_ID
+        );
+    }
+    
+    /**
      * 기본 알림 전송
      */
     private void sendNotification(int notificationId, String title, String message, String channelId) {

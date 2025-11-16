@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>R² Trading Chart - TradingView Advanced Charts</title>
+    <script src="https://s3.tradingview.com/tv.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #1A1F2E;
+            color: #D1D5DB;
+            overflow: hidden;
+        }
+
+        #chartContainer {
+            width: 100%;
+            height: 100%;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #1A1F2E;
+        }
+
+        /* 차트 영역 */
+        #tradingview-widget {
+            flex: 1;
+            background-color: #1A1F2E;
+        }
+
+        /* 하단 정보 패널 */
+        .info-panel {
+            background-color: #1C1F26;
+            border-top: 1px solid #2D3139;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .info-left {
+            display: flex;
+            gap: 24px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #E1E8ED;
+        }
+
+        .info-value.positive {
+            color: #26a69a;
+        }
+
+        .info-value.negative {
+            color: #ef5350;
+        }
+
+        .rr-ratio {
+            font-size: 20px;
+            font-weight: 700;
+            color: #f7931a;
+        }
+
+        /* 제어 버튼 */
+        .control-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn.entry {
+            background-color: #9E9E9E;
+            color: white;
+        }
+
+        .btn.tp {
+            background-color: #26a69a;
+            color: white;
+        }
+
+        .btn.sl {
+            background-color: #ef5350;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- TradingView Advanced Charts 위젯 -->
+        <div id="tradingview-widget"></div>
+
+        <!-- 정보 패널 -->
+        <div class="info-panel">
+            <div class="info-left">
+                <div class="info-item">
+                    <span class="info-label">Entry</span>
+                    <span class="info-value" id="entryValue">$95,883.00</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">TP</span>
+                    <span class="info-value" id="tpValue">$97,800.66</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">SL</span>
+                    <span class="info-value" id="slValue">$93,965.34</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">P&L</span>
+                    <span class="info-value positive" id="pnlValue">+74.44 USDT</span>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <span class="info-label">R:R Ratio</span>
+                <span class="rr-ratio" id="rrRatio">1.00</span>
+            </div>
+
+            <div class="control-buttons">
+                <button class="btn entry" id="btnEntry">진입</button>
+                <button class="btn tp" id="btnTP">익절</button>
+                <button class="btn sl" id="btnSL">손절</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Android Bridge
+        const AndroidBridge = window.Android || {
+            ready: () => console.log('Android Bridge ready'),
+            onLineSelected: (lineType, price) => console.log('Line selected:', lineType, price),
+            onLineUpdated: (lineType, price) => console.log('Line updated:', lineType, price)
+        };
+
+        // ========== TradingView Advanced Charts 초기화 ==========
+        new TradingView.widget({
+            autosize: true,
+            symbol: "BINANCE:BTCUSDT",
+            interval: "60", // 1시간
+            timezone: "Asia/Seoul",
+            theme: "dark",
+            style: "1", // 캔들스틱
+            locale: "ko",
+            toolbar_bg: "#1C1F26",
+            enable_publishing: false,
+            allow_symbol_change: true,
+            withdateranges: true,
+            hide_side_toolbar: false,
+            details: true,
+            hotlist: true,
+            calendar: true,
+            show_popup_button_on_panels: true,
+            popup_width: "1000px",
+            popup_height: "650px",
+            container_id: "tradingview-widget"
+        });
+
+        // ========== 라인 데이터 ==========
+        let lineData = {
+            entry: 95883.00,
+            tp: 97800.66,
+            sl: 93965.34,
+        };
+
+        // ========== 정보 업데이트 ==========
+        function updateInfo() {
+            // 가격 표시
+            const entryValueEl = document.getElementById('entryValue');
+            const tpValueEl = document.getElementById('tpValue');
+            const slValueEl = document.getElementById('slValue');
+            
+            if (entryValueEl) {
+                entryValueEl.textContent = `$${lineData.entry.toFixed(2)}`;
+            }
+            if (tpValueEl) {
+                tpValueEl.textContent = `$${lineData.tp.toFixed(2)}`;
+            }
+            if (slValueEl) {
+                slValueEl.textContent = `$${lineData.sl.toFixed(2)}`;
+            }
+
+            // R:R 비율 계산
+            const rrRatio = (lineData.tp - lineData.entry) / (lineData.entry - lineData.sl);
+            const rrRatioEl = document.getElementById('rrRatio');
+            if (rrRatioEl) {
+                rrRatioEl.textContent = rrRatio.toFixed(2);
+            }
+
+            // P&L 계산 (예상)
+            const pnl = lineData.tp - lineData.entry;
+            const pnlElement = document.getElementById('pnlValue');
+            if (pnlElement) {
+                pnlElement.textContent = `${pnl >= 0 ? '+' : ''}${pnl.toFixed(2)} USDT`;
+                pnlElement.className = pnl >= 0 ? 'info-value positive' : 'info-value negative';
+            }
+        }
+
+        // ========== 버튼 이벤트 ==========
+        const btnEntry = document.getElementById('btnEntry');
+        const btnTP = document.getElementById('btnTP');
+        const btnSL = document.getElementById('btnSL');
+
+        if (btnEntry) {
+            btnEntry.addEventListener('click', () => {
+                // Entry 라인 선택
+                if (AndroidBridge && AndroidBridge.onLineSelected) {
+                    AndroidBridge.onLineSelected('entry', lineData.entry);
+                }
+            });
+        }
+
+        if (btnTP) {
+            btnTP.addEventListener('click', () => {
+                // TP 라인 선택
+                if (AndroidBridge && AndroidBridge.onLineSelected) {
+                    AndroidBridge.onLineSelected('tp', lineData.tp);
+                }
+            });
+        }
+
+        if (btnSL) {
+            btnSL.addEventListener('click', () => {
+                // SL 라인 선택
+                if (AndroidBridge && AndroidBridge.onLineSelected) {
+                    AndroidBridge.onLineSelected('sl', lineData.sl);
+                }
+            });
+        }
+
+        // ========== 초기화 ==========
+        updateInfo();
+
+        // ========== Android 인터페이스 ==========
+        window.updateTPSL = function(entry, tp, sl) {
+            if (entry !== undefined && entry !== null) {
+                lineData.entry = parseFloat(entry);
+            }
+            if (tp !== undefined && tp !== null) {
+                lineData.tp = parseFloat(tp);
+            }
+            if (sl !== undefined && sl !== null) {
+                lineData.sl = parseFloat(sl);
+            }
+            updateInfo();
+        };
+
+        window.updateLines = function(entry, tp, sl) {
+            window.updateTPSL(entry, tp, sl);
+        };
+
+        window.setEntryPrice = function(price) {
+            lineData.entry = parseFloat(price);
+            updateInfo();
+            if (AndroidBridge && AndroidBridge.onLineUpdated) {
+                AndroidBridge.onLineUpdated('entry', lineData.entry);
+            }
+        };
+
+        window.setTakeProfit = function(price) {
+            lineData.tp = parseFloat(price);
+            updateInfo();
+            if (AndroidBridge && AndroidBridge.onLineUpdated) {
+                AndroidBridge.onLineUpdated('tp', lineData.tp);
+            }
+        };
+
+        window.setStopLoss = function(price) {
+            lineData.sl = parseFloat(price);
+            updateInfo();
+            if (AndroidBridge && AndroidBridge.onLineUpdated) {
+                AndroidBridge.onLineUpdated('sl', lineData.sl);
+            }
+        };
+
+        window.setCurrentPrice = function(price) {
+            // 현재 가격 업데이트 (필요시 사용)
+            if (AndroidBridge && AndroidBridge.onPriceUpdated) {
+                AndroidBridge.onPriceUpdated(parseFloat(price));
+            }
+        };
+
+        window.setOHLCData = function(data) {
+            // TradingView Advanced Charts는 자체 데이터 소스를 사용하므로
+            // 이 함수는 필요 없지만 호환성을 위해 유지
+            console.log('setOHLCData called (not used in TradingView Advanced Charts)');
+        };
+
+        window.setPositionType = function(long) {
+            // 포지션 타입 변경 (필요시 사용)
+        };
+
+        window.setPositionSize = function(size) {
+            // 포지션 수량 변경 (필요시 사용)
+        };
+
+        if (window.AndroidBridge) {
+            window.AndroidBridge.ready();
+        }
+
+        // ========== TradingView 차트에서 라인 감지 ==========
+        // TradingView Advanced Charts는 자체적으로 TP/SL 라인을 지원하므로,
+        // 사용자가 차트에서 직접 설정할 수 있습니다.
+        // 설정된 값은 웹훅 또는 이벤트 리스너를 통해 감지 가능합니다.
+    </script>
+</body>
+</html>

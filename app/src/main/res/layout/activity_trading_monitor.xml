@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/tds_bg_black">
+
+    <!-- Header -->
+    <LinearLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@color/tds_bg_dark"
+        android:padding="16dp"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:id="@+id/symbol_header"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="BTCUSDT"
+            android:textSize="20sp"
+            android:textColor="@color/tds_text_primary"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/current_price_header"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="$95,836.00"
+            android:textSize="20sp"
+            android:textColor="@color/tds_text_primary"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Chart Area -->
+    <WebView
+        android:id="@+id/monitor_chart"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        app:layout_constraintTop_toBottomOf="@id/header"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Risk Score Gauge -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/risk_gauge_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:cardBackgroundColor="@color/tds_bg_dark"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp"
+        app:layout_constraintTop_toBottomOf="@id/monitor_chart"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Risk Score"
+                android:textSize="14sp"
+                android:textColor="@color/tds_text_secondary"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Circular Progress Bar -->
+            <ProgressBar
+                android:id="@+id/risk_gauge_circular"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:progress="75"
+                android:progressDrawable="@drawable/risk_gauge_drawable"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:id="@+id/risk_score_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="75/100"
+                android:textSize="32sp"
+                android:textColor="@color/risk_safe"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/risk_status_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="안정"
+                android:textSize="16sp"
+                android:textColor="@color/risk_safe" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Position Info -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/position_info_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="16dp"
+        app:cardBackgroundColor="@color/tds_bg_dark"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        app:layout_constraintTop_toBottomOf="@id/risk_gauge_card"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="포지션 정보"
+                android:textSize="16sp"
+                android:textColor="@color/tds_text_primary"
+                android:textStyle="bold"
+                android:layout_marginBottom="16dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="진입가"
+                    android:textSize="14sp"
+                    android:textColor="@color/tds_text_secondary" />
+
+                <TextView
+                    android:id="@+id/entry_price_monitor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="$95,836.00"
+                    android:textSize="14sp"
+                    android:textColor="@color/tds_text_primary"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="평가손익"
+                    android:textSize="14sp"
+                    android:textColor="@color/tds_text_secondary" />
+
+                <TextView
+                    android:id="@+id/unrealized_pnl_monitor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="+$33.30"
+                    android:textSize="14sp"
+                    android:textColor="@color/tds_success_alt"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="레버리지"
+                    android:textSize="14sp"
+                    android:textColor="@color/tds_text_secondary" />
+
+                <TextView
+                    android:id="@+id/leverage_monitor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="5x"
+                    android:textSize="14sp"
+                    android:textColor="@color/tds_text_primary"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="마진 비율"
+                    android:textSize="14sp"
+                    android:textColor="@color/tds_text_secondary" />
+
+                <TextView
+                    android:id="@+id/margin_ratio_monitor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="125.5%"
+                    android:textSize="14sp"
+                    android:textColor="@color/tds_success_alt"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Metrics Card -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/metrics_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="16dp"
+        app:cardBackgroundColor="@color/tds_bg_dark"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        app:layout_constraintTop_toBottomOf="@id/position_info_card"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="지표"
+                android:textSize="16sp"
+                android:textColor="@color/tds_text_primary"
+                android:textStyle="bold"
+                android:layout_marginBottom="16dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="최대 낙폭 (MDD)"
+                        android:textSize="12sp"
+                        android:textColor="@color/tds_text_secondary"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:id="@+id/mdd_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="-5.2%"
+                        android:textSize="18sp"
+                        android:textColor="@color/tds_error_alt"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="오늘 누적 손익"
+                        android:textSize="12sp"
+                        android:textColor="@color/tds_text_secondary"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:id="@+id/daily_pnl_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="+$250.50"
+                        android:textSize="18sp"
+                        android:textColor="@color/tds_success_alt"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Margin Warning Banner (Conditional) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/margin_warning_banner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone"
+        app:cardBackgroundColor="@color/tds_warning_alt"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        app:layout_constraintTop_toBottomOf="@id/metrics_card"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="⚠️ 마진 비율이 낮아지고 있습니다. 포지션 조정이 필요합니다."
+                android:textSize="14sp"
+                android:textColor="@color/tds_text_primary"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btn_adjust_position"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="조정"
+                android:textSize="12sp"
+                android:background="@drawable/btn_secondary"
+                android:textColor="@color/tds_text_primary"
+                android:layout_marginStart="12dp" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Active Positions List -->
+    <TextView
+        android:id="@+id/positions_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="활성 포지션"
+        android:textSize="18sp"
+        android:textColor="@color/tds_text_primary"
+        android:textStyle="bold"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintTop_toBottomOf="@id/margin_warning_banner"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/positions_recycler"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:padding="16dp"
+        app:layout_constraintTop_toBottomOf="@id/positions_title"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>
+
