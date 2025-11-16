@@ -158,5 +158,19 @@ public class CoachViewModel extends AndroidViewModel {
     public MutableLiveData<Boolean> getLoading() {
         return loading;
     }
+    
+    /**
+     * 코칭 메시지 로드
+     */
+    public void loadCoachingMessages() {
+        analyzeTradingSession();
+    }
+    
+    /**
+     * 추천 챌린지 로드
+     */
+    public void loadRecommendedChallenge() {
+        analyzeTradingSession();
+    }
 }
 

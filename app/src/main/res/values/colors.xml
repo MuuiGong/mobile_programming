@@ -41,4 +41,8 @@
     <color name="chart_up">#26a69a</color>
     <color name="chart_down">#ef5350</color>
     <color name="chart_grid">#2b2b43</color>
+    
+    <!-- Material Components 기본 색상 (BottomNavigationView 필수) -->
+    <color name="mtrl_bottom_nav_item_tint">#787b86</color>
+    <color name="mtrl_bottom_nav_item_tint_selected">#3182FF</color>
 </resources>

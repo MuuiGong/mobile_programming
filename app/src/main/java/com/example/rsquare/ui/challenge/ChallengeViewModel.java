@@ -164,5 +164,12 @@ public class ChallengeViewModel extends AndroidViewModel {
     public interface OnCountLoadedListener {
         void onCountLoaded(int count);
     }
+    
+    /**
+     * 챌린지 로드 (이미 LiveData로 자동 업데이트됨)
+     */
+    public void loadChallenges() {
+        // LiveData가 자동으로 업데이트되므로 별도 작업 불필요
+    }
 }
 

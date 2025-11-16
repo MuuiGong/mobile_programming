@@ -6,10 +6,7 @@
     style="@style/TDS_Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="@dimen/tds_spacing_2"
-    app:cardCornerRadius="@dimen/tds_radius_large"
-    app:cardElevation="0dp"
-    android:backgroundTint="@color/tds_background">
+    android:layout_marginBottom="@dimen/tds_spacing_3">
     
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,16 +15,16 @@
         android:padding="@dimen/tds_spacing_4">
         
         <!-- 아이콘 -->
-        <TextView
-            android:id="@+id/tv_message_icon"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:text="💡"
-            android:textSize="24sp"
-            android:gravity="center"
-            android:background="@drawable/tds_circle_background"
-            android:backgroundTint="@color/tds_info_light"
-            android:layout_marginEnd="@dimen/tds_spacing_3" />
+            <TextView
+                android:id="@+id/tv_message_icon"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:text="💡"
+                android:textSize="24sp"
+                android:gravity="center"
+                android:background="@drawable/tds_circle_background"
+                android:backgroundTint="@color/tds_dark_surface"
+                android:layout_marginEnd="@dimen/tds_spacing_3" />
         
         <!-- 메시지 내용 -->
         <LinearLayout
@@ -52,7 +49,7 @@
                 android:layout_height="wrap_content"
                 android:text="손실 후 거래 규모를 과도하게 줄이는 패턴이 감지되었습니다."
                 style="@style/TDS_Text_Body2"
-                android:textColor="@color/tds_gray_800" />
+                android:textColor="@color/tds_text_secondary_dark" />
             
             <!-- 액션 아이템들 -->
             <LinearLayout

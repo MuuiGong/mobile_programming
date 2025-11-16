@@ -95,7 +95,12 @@ public class DashboardFragment extends Fragment {
     }
     
     private void setupRecyclerView() {
-        positionsAdapter = new RecentPositionsAdapter();
+        positionsAdapter = new RecentPositionsAdapter(position -> {
+            // 포지션 클릭 시 상세 정보 표시 (향후 구현)
+            android.widget.Toast.makeText(requireContext(), 
+                position.getSymbol() + " 포지션 상세 정보", 
+                android.widget.Toast.LENGTH_SHORT).show();
+        });
         rvRecentPositions.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvRecentPositions.setAdapter(positionsAdapter);
     }
@@ -196,6 +201,15 @@ public class DashboardFragment extends Fragment {
     private static class RecentPositionsAdapter extends RecyclerView.Adapter<RecentPositionsAdapter.ViewHolder> {
         
         private List<Position> positions = new ArrayList<>();
+        private OnPositionClickListener clickListener;
+        
+        interface OnPositionClickListener {
+            void onPositionClick(Position position);
+        }
+        
+        public RecentPositionsAdapter(OnPositionClickListener clickListener) {
+            this.clickListener = clickListener;
+        }
         
         public void setPositions(List<Position> positions) {
             this.positions = positions;
@@ -206,8 +220,8 @@ public class DashboardFragment extends Fragment {
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_position, parent, false);
-            return new ViewHolder(view);
+                .inflate(R.layout.item_position_tds, parent, false);
+            return new ViewHolder(view, clickListener);
         }
         
         @Override
@@ -223,33 +237,50 @@ public class DashboardFragment extends Fragment {
         
         static class ViewHolder extends RecyclerView.ViewHolder {
             TextView tvSymbol, tvType, tvPnL, tvStatus;
+            OnPositionClickListener clickListener;
             
-            public ViewHolder(@NonNull View itemView) {
+            public ViewHolder(@NonNull View itemView, OnPositionClickListener clickListener) {
                 super(itemView);
+                this.clickListener = clickListener;
                 tvSymbol = itemView.findViewById(R.id.tv_position_symbol);
                 tvType = itemView.findViewById(R.id.tv_position_type);
                 tvPnL = itemView.findViewById(R.id.tv_position_pnl);
                 tvStatus = itemView.findViewById(R.id.tv_position_status);
+                
+                // 클릭 리스너 설정
+                itemView.setOnClickListener(v -> {
+                    if (clickListener != null && getAdapterPosition() != RecyclerView.NO_POSITION) {
+                        // 어댑터에서 position 가져오기
+                        RecyclerView.Adapter adapter = ((RecyclerView) itemView.getParent()).getAdapter();
+                        if (adapter instanceof RecentPositionsAdapter) {
+                            RecentPositionsAdapter posAdapter = (RecentPositionsAdapter) adapter;
+                            int pos = getAdapterPosition();
+                            if (pos >= 0 && pos < posAdapter.positions.size()) {
+                                clickListener.onPositionClick(posAdapter.positions.get(pos));
+                            }
+                        }
+                    }
+                });
             }
             
             public void bind(Position position) {
                 tvSymbol.setText(position.getSymbol());
-                tvType.setText(position.isLong() ? "LONG" : "SHORT");
+                tvType.setText(position.isLong() ? "롱" : "숏");
                 
                 if (position.isClosed()) {
                     tvPnL.setText(NumberFormatter.formatPnL(position.getPnl()));
-                    tvStatus.setText("종료");
+                    tvStatus.setText("· 종료");
                     
                     // TDS 색상 사용
                     if (position.getPnl() >= 0) {
-                        tvPnL.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.tds_success));
+                        tvPnL.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.tds_profit));
                     } else {
-                        tvPnL.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.tds_error));
+                        tvPnL.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.tds_loss));
                     }
                 } else {
                     tvPnL.setText("-");
-                    tvStatus.setText("활성");
-                    tvStatus.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.tds_blue_500));
+                    tvStatus.setText("· 활성");
+                    tvStatus.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.tds_blue_400));
                 }
             }
         }

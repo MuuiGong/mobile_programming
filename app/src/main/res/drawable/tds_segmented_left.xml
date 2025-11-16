@@ -10,13 +10,10 @@
     </item>
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="@color/tds_background" />
-            <stroke
-                android:width="1dp"
-                android:color="@color/tds_gray_300" />
+            <solid android:color="@android:color/transparent" />
             <corners
-                android:topLeftRadius="@dimen/tds_radius_medium"
-                android:bottomLeftRadius="@dimen/tds_radius_medium" />
+                android:topLeftRadius="12dp"
+                android:bottomLeftRadius="12dp" />
         </shape>
     </item>
 </selector>

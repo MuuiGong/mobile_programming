@@ -28,6 +28,7 @@ public class JournalViewModel extends AndroidViewModel {
     private final MutableLiveData<List<Journal>> selectedPositionJournals = new MutableLiveData<>();
     private final MutableLiveData<Position> selectedPosition = new MutableLiveData<>();
     private final MutableLiveData<String> successMessage = new MutableLiveData<>();
+    private final MutableLiveData<List<Journal>> filteredJournals = new MutableLiveData<>();
     
     public JournalViewModel(@NonNull Application application) {
         super(application);
@@ -44,6 +45,47 @@ public class JournalViewModel extends AndroidViewModel {
      */
     public LiveData<List<Journal>> getAllJournals() {
         return allJournals;
+    }
+    
+    /**
+     * 필터링된 저널 조회
+     */
+    public LiveData<List<Journal>> getJournals() {
+        return filteredJournals;
+    }
+    
+    /**
+     * 저널 로드
+     */
+    public void loadJournals() {
+        allJournals.observeForever(journals -> {
+            if (journals != null) {
+                filteredJournals.setValue(journals);
+            }
+        });
+    }
+    
+    /**
+     * 감정으로 필터링
+     */
+    public void filterByEmotion(String emotion) {
+        if (emotion == null || emotion.equals("전체")) {
+            loadJournals();
+            return;
+        }
+        
+        allJournals.observeForever(journals -> {
+            if (journals != null) {
+                List<Journal> filtered = new java.util.ArrayList<>();
+                for (Journal journal : journals) {
+                    if (journal.getEmotion() != null && 
+                        journal.getEmotion().toString().equalsIgnoreCase(emotion)) {
+                        filtered.add(journal);
+                    }
+                }
+                filteredJournals.setValue(filtered);
+            }
+        });
     }
     
     /**

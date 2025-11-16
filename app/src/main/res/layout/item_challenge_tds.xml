@@ -6,10 +6,7 @@
     style="@style/TDS_Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="@dimen/tds_spacing_2"
-    app:cardCornerRadius="@dimen/tds_radius_large"
-    app:cardElevation="0dp"
-    android:backgroundTint="@color/tds_background">
+    android:layout_marginBottom="@dimen/tds_spacing_3">
     
     <LinearLayout
         android:layout_width="match_parent"
@@ -33,7 +30,7 @@
                 android:text="리스크 마스터"
                 style="@style/TDS_Text_Body1"
                 android:textStyle="bold"
-                android:textColor="@color/tds_gray_900" />
+                android:textColor="@color/tds_text_primary_dark" />
             
             <!-- 난이도 뱃지 (TDS Badge) -->
             <TextView
@@ -42,7 +39,7 @@
                 android:layout_height="wrap_content"
                 android:text="⭐⭐"
                 android:textSize="16sp"
-                android:background="@color/tds_warning_light"
+                android:background="@color/tds_dark_surface"
                 android:textColor="@color/tds_warning"
                 android:paddingStart="@dimen/tds_spacing_2"
                 android:paddingEnd="@dimen/tds_spacing_2"
@@ -57,7 +54,7 @@
             android:layout_height="wrap_content"
             android:text="R:R 비율 2.0 이상으로 5회 거래하기"
             style="@style/TDS_Text_Body2"
-            android:textColor="@color/tds_gray_700"
+                android:textColor="@color/tds_text_secondary_dark"
             android:layout_marginBottom="@dimen/tds_spacing_3" />
         
         <!-- 진행률 (TDS Progress Bar) -->
@@ -76,7 +73,7 @@
                 android:layout_weight="1"
                 android:progress="60"
                 android:progressTint="@color/tds_blue_500"
-                android:progressBackgroundTint="@color/tds_gray_200"
+                android:progressBackgroundTint="@color/tds_dark_surface"
                 android:layout_marginEnd="@dimen/tds_spacing_2" />
             
             <TextView
@@ -95,7 +92,7 @@
             android:layout_height="wrap_content"
             android:text="3 / 5 완료"
             style="@style/TDS_Text_Caption"
-            android:textColor="@color/tds_gray_600" />
+                android:textColor="@color/tds_text_tertiary_dark" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
 

@@ -17,10 +17,12 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class NetworkModule {
     
     private static Retrofit retrofit = null;
+    private static Retrofit binanceRetrofit = null;
     private static CoinGeckoApiService apiService = null;
+    private static BinanceApiService binanceApiService = null;
     
     /**
-     * Retrofit 인스턴스 생성
+     * Retrofit 인스턴스 생성 (CoinGecko)
      */
     public static Retrofit getRetrofitInstance() {
         if (retrofit == null) {
@@ -52,6 +54,38 @@ public class NetworkModule {
     }
     
     /**
+     * Binance Retrofit 인스턴스 생성
+     */
+    public static Retrofit getBinanceRetrofitInstance() {
+        if (binanceRetrofit == null) {
+            // HTTP 로깅 인터셉터
+            HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+            loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+            
+            // OkHttp 클라이언트 설정
+            OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(loggingInterceptor)
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .build();
+            
+            // Gson 설정
+            Gson gson = new GsonBuilder()
+                .setLenient()
+                .create();
+            
+            // Retrofit 빌드
+            binanceRetrofit = new Retrofit.Builder()
+                .baseUrl("https://api.binance.com/")
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .build();
+        }
+        return binanceRetrofit;
+    }
+    
+    /**
      * CoinGecko API 서비스 인스턴스
      */
     public static CoinGeckoApiService getApiService() {
@@ -59,6 +93,16 @@ public class NetworkModule {
             apiService = getRetrofitInstance().create(CoinGeckoApiService.class);
         }
         return apiService;
+    }
+    
+    /**
+     * Binance API 서비스 인스턴스
+     */
+    public static BinanceApiService getBinanceApiService() {
+        if (binanceApiService == null) {
+            binanceApiService = getBinanceRetrofitInstance().create(BinanceApiService.class);
+        }
+        return binanceApiService;
     }
 }
 

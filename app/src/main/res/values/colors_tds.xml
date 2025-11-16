@@ -23,24 +23,36 @@
     
     <!-- Semantic Colors -->
     <color name="tds_success">#12B564</color>
-    <color name="tds_success_light">#E8F5EF</color>
+    <color name="tds_success_light">#1A3D2E</color>
     <color name="tds_error">#F04452</color>
-    <color name="tds_error_light">#FFEBEE</color>
+    <color name="tds_error_light">#3D1F22</color>
     <color name="tds_warning">#FFB800</color>
-    <color name="tds_warning_light">#FFF8E1</color>
+    <color name="tds_warning_light">#3D2F1A</color>
     <color name="tds_info">#0064FF</color>
-    <color name="tds_info_light">#E3F2FD</color>
+    <color name="tds_info_light">#1A2A3D</color>
     
-    <!-- Background -->
-    <color name="tds_background">#FFFFFF</color>
-    <color name="tds_background_elevated">#FFFFFF</color>
+    <!-- Background (다크 모드 기본값 - 토스 스타일로 개선) -->
+    <color name="tds_background">#0F1117</color>
+    <color name="tds_background_elevated">#1A1D26</color>
     <color name="tds_background_dimmed">#000000</color>
     <color name="tds_background_dimmed_alpha">#80000000</color>
     
-    <!-- Dark Mode -->
-    <color name="tds_dark_background">#191F28</color>
-    <color name="tds_dark_surface">#333D4B</color>
-    <color name="tds_dark_surface_elevated">#4E5968</color>
+    <!-- Dark Mode (토스 스타일 - 더 부드러운 그라데이션) -->
+    <color name="tds_dark_background">#0F1117</color>
+    <color name="tds_dark_surface">#1A1D26</color>
+    <color name="tds_dark_surface_elevated">#252833</color>
+    <color name="tds_dark_surface_hover">#2E3240</color>
+    <color name="tds_dark_border">#2E3240</color>
+    
+    <!-- Card Backgrounds (토스 스타일) -->
+    <color name="tds_card_background">#1A1D26</color>
+    <color name="tds_card_background_elevated">#252833</color>
+    <color name="tds_card_border">#2E3240</color>
+    
+    <!-- Text Colors (다크 모드용) -->
+    <color name="tds_text_primary_dark">#FFFFFF</color>
+    <color name="tds_text_secondary_dark">#B8BCC8</color>
+    <color name="tds_text_tertiary_dark">#787B86</color>
     
     <!-- Trading Specific (TDS 스타일로 조정) -->
     <color name="tds_profit">#12B564</color>
@@ -50,5 +62,17 @@
     <!-- Overlay -->
     <color name="tds_overlay_dim">#80000000</color>
     <color name="tds_overlay_strong">#CC000000</color>
+    
+    <!-- Material3 Navigation Bar Colors (다크 모드 - 기본값 제공) -->
+    <color name="m3_navigation_bar_item_active_indicator_color">#3182FF</color>
+    <color name="m3_navigation_bar_item_inactive_indicator_color">#00000000</color>
+    <color name="m3_navigation_bar_item_active_ripple_color">#1a3182FF</color>
+    <color name="m3_navigation_bar_item_inactive_ripple_color">#1a787b86</color>
+    
+    <!-- Material Components Navigation Bar 내부 색상 (createDefaultColorStateList 필수) -->
+    <color name="mtrl_navigation_bar_item_tint_color">#787b86</color>
+    <color name="mtrl_navigation_bar_item_tint_color_selected">#3182FF</color>
+    <color name="mtrl_navigation_bar_item_active_indicator_color">#3182FF</color>
+    <color name="mtrl_navigation_bar_item_background_color">#1e222d</color>
 </resources>
 
