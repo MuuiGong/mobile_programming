@@ -73,10 +73,14 @@ public class ChartViewModel extends AndroidViewModel {
         marketDataRepository.setPriceUpdateListener(new MarketDataRepository.OnPriceUpdateListener() {
             @Override
             public void onPriceUpdate(String coinId, double price) {
+                android.util.Log.d("ChartViewModel", "WebSocket price update received: " + coinId + " = " + price);
                 // 선택된 코인의 가격이 업데이트되면 LiveData 업데이트
                 String selectedId = selectedCoinId.getValue();
                 if (selectedId != null && selectedId.equals(coinId)) {
+                    android.util.Log.d("ChartViewModel", "Updating current price for selected coin: " + price);
                     currentPrice.postValue(price);
+                } else {
+                    android.util.Log.d("ChartViewModel", "Price update ignored (selected coin: " + selectedId + ", update coin: " + coinId + ")");
                 }
             }
             
@@ -108,6 +112,7 @@ public class ChartViewModel extends AndroidViewModel {
      * 시장 데이터 로드
      */
     public void loadMarketData() {
+        android.util.Log.d("ChartViewModel", "loadMarketData() called");
         loading.setValue(true);
         
         // 주요 코인들 조회
@@ -116,6 +121,7 @@ public class ChartViewModel extends AndroidViewModel {
             new MarketDataRepository.OnMarketDataLoadedListener() {
                 @Override
                 public void onMarketDataLoaded(List<CoinPrice> prices) {
+                    android.util.Log.d("ChartViewModel", "onMarketDataLoaded: " + prices.size() + " coins");
                     loading.postValue(false);
                     coinPrices.postValue(prices);
                     
@@ -124,6 +130,7 @@ public class ChartViewModel extends AndroidViewModel {
                     if (selectedId != null) {
                         for (CoinPrice price : prices) {
                             if (price.getId().equals(selectedId)) {
+                                android.util.Log.d("ChartViewModel", "Setting initial price for " + selectedId + ": " + price.getCurrentPrice());
                                 currentPrice.postValue(price.getCurrentPrice());
                                 
                                 // 진입가가 설정되지 않았으면 현재 가격으로 설정
@@ -135,17 +142,19 @@ public class ChartViewModel extends AndroidViewModel {
                         }
                     }
                     
-                    // 웹소켓 연결 시작 (실시간 가격 + 캔들스틱 업데이트)
-                    List<String> coinIds = new java.util.ArrayList<>();
-                    for (CoinPrice price : prices) {
-                        coinIds.add(price.getId());
+                    // 웹소켓 연결 시작 (현재 선택된 코인만 구독)
+                    if (selectedId != null) {
+                        List<String> coinIds = new java.util.ArrayList<>();
+                        coinIds.add(selectedId);
+                        android.util.Log.d("ChartViewModel", "Starting WebSocket for selected coin only: " + coinIds);
+                        // 1분 캔들스틱 구독
+                        marketDataRepository.startWebSocket(coinIds, "1m");
                     }
-                    // 1분 캔들스틱 구독
-                    marketDataRepository.startWebSocket(coinIds, "1m");
                 }
                 
                 @Override
                 public void onError(String error) {
+                    android.util.Log.e("ChartViewModel", "Error loading market data: " + error);
                     loading.postValue(false);
                     errorMessage.postValue(error);
                 }
@@ -279,6 +288,12 @@ public class ChartViewModel extends AndroidViewModel {
                 }
             }
         }
+        
+        // 웹소켓 재구독 (새로운 코인만 구독)
+        List<String> coinIds = new java.util.ArrayList<>();
+        coinIds.add(coinId);
+        android.util.Log.d("ChartViewModel", "Reconnecting WebSocket for new coin: " + coinId);
+        marketDataRepository.startWebSocket(coinIds, "1m");
     }
     
     /**

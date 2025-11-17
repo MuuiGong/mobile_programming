@@ -24,6 +24,7 @@ import com.example.rsquare.domain.RiskCalculator;
 import com.example.rsquare.domain.TradeCalculator;
 import com.example.rsquare.domain.TradeExecutor;
 import com.example.rsquare.ui.chart.ChartWebViewInterface;
+import com.example.rsquare.ui.chart.ChartViewModel;
 import com.example.rsquare.ui.trade.TradeViewModel;
 
 import java.text.DecimalFormat;
@@ -37,6 +38,7 @@ import java.util.Locale;
 public class TradingActivity extends AppCompatActivity {
     
     private TradeViewModel viewModel;
+    private ChartViewModel chartViewModel;
     private TradeExecutor tradeExecutor;
     
     // Views
@@ -60,6 +62,8 @@ public class TradingActivity extends AppCompatActivity {
     private int leverage = 5;
     private boolean isLong = true;
     private double currentPrice = 0.0;
+    private boolean isChartReady = false;
+    private java.util.List<java.util.List<Object>> pendingKlines = null;
     
     private final DecimalFormat priceFormatter = new DecimalFormat("#,##0.00");
     private final NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.US);
@@ -71,6 +75,7 @@ public class TradingActivity extends AppCompatActivity {
         
         // ViewModel 초기화
         viewModel = new ViewModelProvider(this).get(TradeViewModel.class);
+        chartViewModel = new ViewModelProvider(this).get(ChartViewModel.class);
         tradeExecutor = new TradeExecutor(this);
         
         initViews();
@@ -162,7 +167,7 @@ public class TradingActivity extends AppCompatActivity {
         
         // ChartWebViewInterface 연결
         ChartWebViewInterface chartInterface = new ChartWebViewInterface(
-            new ChartWebViewInterface.ChartCallback() {
+            new ChartWebViewInterface.ExtendedChartCallback() {
                 @Override
                 public void onPriceChanged(double price) {
                     if (price > 0) {
@@ -207,6 +212,20 @@ public class TradingActivity extends AppCompatActivity {
                             updateRiskMetrics();
                         });
                     }
+                }
+                
+                @Override
+                public void onChartReady() {
+                    android.util.Log.d("TradingActivity", "Chart ready callback received");
+                    runOnUiThread(() -> {
+                        isChartReady = true;
+                        // 대기 중인 OHLC 데이터가 있으면 전송
+                        if (pendingKlines != null && !pendingKlines.isEmpty()) {
+                            android.util.Log.d("TradingActivity", "Sending pending OHLC data");
+                            loadBinanceOHLCData(pendingKlines);
+                            pendingKlines = null;
+                        }
+                    });
                 }
             }
         );
@@ -314,16 +333,136 @@ public class TradingActivity extends AppCompatActivity {
      * Observer 설정
      */
     private void setupObservers() {
-        // 가격 업데이트는 ChartWebViewInterface의 onPriceChanged 콜백에서 처리됨
-        // ViewModel의 다른 LiveData 관찰이 필요한 경우 여기에 추가
+        // ChartViewModel의 현재 가격 관찰 (웹소켓 실시간 업데이트)
+        chartViewModel.getCurrentPrice().observe(this, price -> {
+            if (price != null && price > 0) {
+                android.util.Log.d("TradingActivity", "Current price updated from WebSocket: " + price);
+                currentPrice = price;
+                
+                // JavaScript에 현재가 업데이트 전달
+                String jsCode = "if (typeof setCurrentPrice === 'function') { " +
+                    "console.log('Setting current price from Android:', " + price + "); " +
+                    "setCurrentPrice(" + price + "); }";
+                tradingChart.post(() -> {
+                    if (tradingChart != null) {
+                        tradingChart.evaluateJavascript(jsCode, null);
+                    }
+                });
+                
+                // 진입가가 비어있으면 현재 가격으로 설정
+                String currentText = entryPriceInput.getText() != null ? 
+                    entryPriceInput.getText().toString().trim() : "";
+                if (currentText.isEmpty()) {
+                    entryPriceInput.setText(formatPrice(price));
+                }
+                updateRiskMetrics();
+            }
+        });
+        
+        // Binance OHLC 데이터 관찰
+        chartViewModel.getBinanceKlines().observe(this, klines -> {
+            if (klines != null && !klines.isEmpty()) {
+                android.util.Log.d("TradingActivity", "Loading Binance OHLC data, klines: " + klines.size());
+                loadBinanceOHLCData(klines);
+            }
+        });
+        
+        // 실시간 Kline 업데이트 관찰 (WebSocket에서 받은 새로운 캔들)
+        chartViewModel.getKlineUpdate().observe(this, klineData -> {
+            if (klineData != null && isChartReady) {
+                android.util.Log.d("TradingActivity", "Real-time kline update: " + klineData.coinId + " " + klineData.close);
+                
+                // JavaScript에 실시간 캔들 업데이트 전달
+                String jsCode = "if (typeof updateKline === 'function') { " +
+                    "updateKline(" + klineData.openTime + ", " + klineData.open + ", " + 
+                    klineData.high + ", " + klineData.low + ", " + klineData.close + ", " + 
+                    klineData.volume + "); }";
+                tradingChart.post(() -> {
+                    if (tradingChart != null) {
+                        tradingChart.evaluateJavascript(jsCode, null);
+                    }
+                });
+            }
+        });
     }
     
     /**
      * 초기 데이터 로드
      */
     private void loadInitialData() {
-        // 가격 데이터는 ChartWebViewInterface의 콜백에서 처리됨
-        // 필요시 여기에 다른 초기화 로직 추가
+        android.util.Log.d("TradingActivity", "Loading initial data");
+        // ChartViewModel을 통해 웹소켓 연결 및 차트 데이터 로드
+        chartViewModel.loadMarketData();
+        chartViewModel.loadChartData("bitcoin", 7);
+    }
+    
+    /**
+     * Binance OHLC 데이터 로드
+     */
+    private void loadBinanceOHLCData(java.util.List<java.util.List<Object>> klines) {
+        // 차트가 준비되지 않았으면 대기
+        if (!isChartReady) {
+            android.util.Log.d("TradingActivity", "Chart not ready yet, storing klines for later");
+            pendingKlines = klines;
+            return;
+        }
+        
+        try {
+            // Binance klines 형식: [[openTime, open, high, low, close, volume, ...], ...]
+            org.json.JSONArray klinesArray = new org.json.JSONArray();
+            
+            for (java.util.List<Object> kline : klines) {
+                if (kline != null && kline.size() >= 6) {
+                    org.json.JSONArray klineArray = new org.json.JSONArray();
+                    for (Object value : kline) {
+                        if (value instanceof Number) {
+                            klineArray.put(((Number) value).doubleValue());
+                        } else if (value instanceof String) {
+                            try {
+                                klineArray.put(Double.parseDouble((String) value));
+                            } catch (NumberFormatException e) {
+                                klineArray.put(value.toString());
+                            }
+                        } else {
+                            klineArray.put(value.toString());
+                        }
+                    }
+                    klinesArray.put(klineArray);
+                }
+            }
+            
+            String klinesString = klinesArray.toString();
+            android.util.Log.d("TradingActivity", "Calling setOHLCData with data length: " + klinesString.length());
+            
+            // JavaScript에 OHLC 데이터 직접 전달 (재시도 로직 포함)
+            String jsCode = String.format(
+                "(function() { " +
+                "  if (typeof setOHLCData === 'function') { " +
+                "    console.log('Calling setOHLCData'); " +
+                "    setOHLCData(%s); " +
+                "  } else { " +
+                "    console.error('setOHLCData function not found, retrying...'); " +
+                "    setTimeout(function() { " +
+                "      if (typeof setOHLCData === 'function') { " +
+                "        console.log('Retry: Calling setOHLCData'); " +
+                "        setOHLCData(%s); " +
+                "      } else { " +
+                "        console.error('setOHLCData function still not found after retry'); " +
+                "      } " +
+                "    }, 500); " +
+                "  } " +
+                "})();",
+                klinesString, klinesString
+            );
+            tradingChart.post(() -> {
+                if (tradingChart != null) {
+                    tradingChart.evaluateJavascript(jsCode, null);
+                }
+            });
+        } catch (Exception e) {
+            android.util.Log.e("TradingActivity", "Error loading Binance OHLC data", e);
+            e.printStackTrace();
+        }
     }
     
     /**

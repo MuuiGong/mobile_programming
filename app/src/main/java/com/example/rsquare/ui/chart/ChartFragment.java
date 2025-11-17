@@ -177,8 +177,8 @@ public class ChartFragment extends Fragment implements ChartWebViewInterface.Cha
         webSettings.setBlockNetworkLoads(false);
         webSettings.setBlockNetworkImage(false);
         
-        // 캐시 설정 (개발 중에는 NO_CACHE, 프로덕션에서는 DEFAULT)
-        webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        // 캐시 설정 (개발 중에는 NO_CACHE로 설정하여 항상 최신 파일 로드)
+        webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         
         // 뷰포트 설정
         webSettings.setLoadWithOverviewMode(true);
@@ -276,7 +276,8 @@ public class ChartFragment extends Fragment implements ChartWebViewInterface.Cha
             }
         });
         
-        // HTML 로드 (버전 파라미터로 캐시 무시)
+        // HTML 로드 (캐시 무시를 위해 타임스탬프 추가)
+        chartWebView.clearCache(true);
         chartWebView.loadUrl("file:///android_asset/chart.html?v=" + System.currentTimeMillis());
     }
     
@@ -307,13 +308,17 @@ public class ChartFragment extends Fragment implements ChartWebViewInterface.Cha
             }
         });
         
-        // 현재 가격 관찰
+        // 현재 가격 관찰 (웹소켓 실시간 업데이트)
         viewModel.getCurrentPrice().observe(getViewLifecycleOwner(), price -> {
             if (price != null) {
+                android.util.Log.d("ChartFragment", "Current price updated from WebSocket: " + price);
                 tvCurrentPrice.setText("$" + String.format(Locale.US, "%.2f", price));
                 
                 // JavaScript에 현재가 업데이트 알림
-                callJavaScript("if (typeof setCurrentPrice === 'function') { setCurrentPrice(" + price + "); }");
+                String jsCode = "if (typeof setCurrentPrice === 'function') { " +
+                    "console.log('Setting current price from Android:', " + price + "); " +
+                    "setCurrentPrice(" + price + "); }";
+                callJavaScript(jsCode);
                 
                 // 진입가가 설정되지 않았으면 현재 가격으로 설정
                 if (etEntryPrice.getText().toString().isEmpty()) {

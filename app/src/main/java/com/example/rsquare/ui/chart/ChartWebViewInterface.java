@@ -88,6 +88,17 @@ public class ChartWebViewInterface {
     }
     
     /**
+     * JS에서 호출: 차트 초기화 완료 시 호출
+     */
+    @JavascriptInterface
+    public void onChartReady() {
+        android.util.Log.d("ChartWebViewInterface", "Chart is ready");
+        if (callback != null && callback instanceof ExtendedChartCallback) {
+            ((ExtendedChartCallback) callback).onChartReady();
+        }
+    }
+    
+    /**
      * 콜백 인터페이스
      */
     public interface ChartCallback {
@@ -95,6 +106,13 @@ public class ChartWebViewInterface {
         void onEntryPriceChanged(double price);
         void onTakeProfitChanged(double price);
         void onStopLossChanged(double price);
+    }
+    
+    /**
+     * 확장된 콜백 인터페이스 (차트 준비 완료 포함)
+     */
+    public interface ExtendedChartCallback extends ChartCallback {
+        void onChartReady();
     }
 }
 

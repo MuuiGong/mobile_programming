@@ -72,9 +72,18 @@ public class MarketDataRepository implements WebSocketClient.PriceUpdateListener
      * @param klineInterval kline 간격 (예: "1m", "5m", "1h") - null이면 ticker만
      */
     public void startWebSocket(List<String> coinIds, String klineInterval) {
-        if (webSocketClient != null && !webSocketClient.isConnected()) {
-            webSocketClient.connect(coinIds, klineInterval);
+        if (webSocketClient == null) {
+            Log.e(TAG, "WebSocketClient is null");
+            return;
         }
+        
+        if (webSocketClient.isConnected()) {
+            Log.d(TAG, "WebSocket already connected, reconnecting...");
+            webSocketClient.disconnect();
+        }
+        
+        Log.d(TAG, "Starting WebSocket connection for coins: " + coinIds + ", interval: " + klineInterval);
+        webSocketClient.connect(coinIds, klineInterval);
     }
     
     /**

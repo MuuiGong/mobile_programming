@@ -29,12 +29,38 @@
             flex-direction: column;
             height: 100vh;
             background-color: #1A1F2E;
+            position: relative;
         }
 
         /* 차트 영역 */
-        #tradingview-widget {
+        .chart-wrapper {
             flex: 1;
+            position: relative;
             background-color: #1A1F2E;
+        }
+
+        #tradingview-widget {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        /* 오버레이 캔버스 */
+        #overlay-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            pointer-events: none;
+            touch-action: none;
+        }
+
+        #overlay-canvas.dragging {
+            pointer-events: auto;
         }
 
         /* 하단 정보 패널 */
@@ -119,27 +145,69 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
+
+        /* 입력 필드 스타일 */
+        .price-input-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .price-input {
+            background-color: #2D3139;
+            border: 1px solid #3D4149;
+            border-radius: 4px;
+            padding: 6px 10px;
+            color: #E1E8ED;
+            font-size: 12px;
+            width: 100px;
+            outline: none;
+        }
+
+        .price-input:focus {
+            border-color: #26a69a;
+        }
+
+        .price-label {
+            font-size: 11px;
+            color: #888;
+            min-width: 50px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- TradingView Advanced Charts 위젯 -->
-        <div id="tradingview-widget"></div>
+        <!-- 차트 래퍼 -->
+        <div class="chart-wrapper">
+            <!-- TradingView Advanced Charts 위젯 -->
+            <div id="tradingview-widget"></div>
+            <!-- 오버레이 캔버스 (드래그 가능한 선) -->
+            <canvas id="overlay-canvas"></canvas>
+        </div>
 
         <!-- 정보 패널 -->
         <div class="info-panel">
             <div class="info-left">
                 <div class="info-item">
                     <span class="info-label">Entry</span>
-                    <span class="info-value" id="entryValue">$95,883.00</span>
+                    <div class="price-input-group">
+                        <input type="number" class="price-input" id="entryInput" step="0.01" placeholder="진입가">
+                        <span class="info-value" id="entryValue">$95,883.00</span>
+                    </div>
                 </div>
                 <div class="info-item">
                     <span class="info-label">TP</span>
-                    <span class="info-value" id="tpValue">$97,800.66</span>
+                    <div class="price-input-group">
+                        <input type="number" class="price-input" id="tpInput" step="0.01" placeholder="익절가">
+                        <span class="info-value" id="tpValue">$97,800.66</span>
+                    </div>
                 </div>
                 <div class="info-item">
                     <span class="info-label">SL</span>
-                    <span class="info-value" id="slValue">$93,965.34</span>
+                    <div class="price-input-group">
+                        <input type="number" class="price-input" id="slInput" step="0.01" placeholder="손절가">
+                        <span class="info-value" id="slValue">$93,965.34</span>
+                    </div>
                 </div>
                 <div class="info-item">
                     <span class="info-label">P&L</span>
@@ -169,7 +237,7 @@
         };
 
         // ========== TradingView Advanced Charts 초기화 ==========
-        new TradingView.widget({
+        const tvWidget = new TradingView.widget({
             autosize: true,
             symbol: "BINANCE:BTCUSDT",
             interval: "60", // 1시간
@@ -196,7 +264,356 @@
             entry: 95883.00,
             tp: 97800.66,
             sl: 93965.34,
+            currentPrice: 95883.00
         };
+
+        let positionType = 'long'; // 'long' or 'short'
+        let isDragging = false;
+        let dragLineType = null;
+        let chartBounds = null;
+        let priceRange = { min: 0, max: 0 };
+        let canvas = null;
+        let ctx = null;
+
+        // ========== 캔버스 초기화 ==========
+        function initCanvas() {
+            canvas = document.getElementById('overlay-canvas');
+            ctx = canvas.getContext('2d');
+            
+            const wrapper = document.querySelector('.chart-wrapper');
+            const resizeCanvas = () => {
+                canvas.width = wrapper.clientWidth;
+                canvas.height = wrapper.clientHeight;
+                chartBounds = canvas.getBoundingClientRect();
+                drawLines();
+            };
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // 마우스 오버 핸들러 (선 감지)
+            const handleMouseOver = (e) => {
+                if (isDragging) return;
+                const pos = getMousePos(e);
+                const lineType = getLineTypeAtY(pos.y);
+                if (lineType) {
+                    canvas.style.pointerEvents = 'auto';
+                    canvas.style.cursor = 'ns-resize';
+                } else {
+                    canvas.style.cursor = 'default';
+                }
+            };
+            
+            // 드래그 이벤트
+            canvas.addEventListener('mousedown', handleMouseDown, { passive: false });
+            canvas.addEventListener('mousemove', (e) => {
+                handleMouseOver(e);
+                handleMouseMove(e);
+            }, { passive: false });
+            canvas.addEventListener('mouseup', handleMouseUp, { passive: false });
+            canvas.addEventListener('mouseleave', (e) => {
+                handleMouseUp(e);
+                canvas.style.cursor = 'default';
+            }, { passive: false });
+            
+            // 터치 이벤트
+            canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+            canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+            canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+        }
+
+        // ========== 가격 범위 계산 ==========
+        function updatePriceRange() {
+            // 간단한 추정 (실제로는 TradingView API에서 가져와야 함)
+            const prices = [lineData.entry, lineData.tp, lineData.sl, lineData.currentPrice];
+            priceRange.min = Math.min(...prices) * 0.95;
+            priceRange.max = Math.max(...prices) * 1.05;
+        }
+
+        // ========== 가격을 Y 좌표로 변환 ==========
+        function priceToY(price) {
+            if (!chartBounds || priceRange.max === priceRange.min) return 0;
+            const padding = 50;
+            const chartHeight = chartBounds.height - padding * 2;
+            const ratio = (priceRange.max - price) / (priceRange.max - priceRange.min);
+            return padding + ratio * chartHeight;
+        }
+
+        // ========== Y 좌표를 가격으로 변환 ==========
+        function yToPrice(y) {
+            if (!chartBounds || priceRange.max === priceRange.min) return lineData.currentPrice;
+            const padding = 50;
+            const chartHeight = chartBounds.height - padding * 2;
+            const ratio = (y - padding) / chartHeight;
+            const price = priceRange.max - ratio * (priceRange.max - priceRange.min);
+            return Math.max(priceRange.min, Math.min(priceRange.max, price));
+        }
+
+        // ========== 선 그리기 ==========
+        function drawLines() {
+            if (!ctx || !chartBounds) return;
+            
+            updatePriceRange();
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const lineWidth = 2;
+            const handleSize = 12;
+            const handleRadius = 6;
+            
+            // 진입-익절 영역 (초록)
+            if (positionType === 'long' ? lineData.tp > lineData.entry : lineData.tp < lineData.entry) {
+                const entryY = priceToY(lineData.entry);
+                const tpY = priceToY(lineData.tp);
+                ctx.fillStyle = 'rgba(38, 166, 154, 0.2)';
+                ctx.fillRect(0, Math.min(entryY, tpY), canvas.width, Math.abs(tpY - entryY));
+            }
+            
+            // 진입-손절 영역 (빨강)
+            if (positionType === 'long' ? lineData.sl < lineData.entry : lineData.sl > lineData.entry) {
+                const entryY = priceToY(lineData.entry);
+                const slY = priceToY(lineData.sl);
+                ctx.fillStyle = 'rgba(239, 83, 80, 0.2)';
+                ctx.fillRect(0, Math.min(entryY, slY), canvas.width, Math.abs(slY - entryY));
+            }
+            
+            // 현재가 선 (회색)
+            const currentY = priceToY(lineData.currentPrice);
+            ctx.strokeStyle = '#888';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(0, currentY);
+            ctx.lineTo(canvas.width, currentY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // 진입가 선 (회색)
+            const entryY = priceToY(lineData.entry);
+            ctx.strokeStyle = '#9E9E9E';
+            ctx.lineWidth = lineWidth;
+            ctx.beginPath();
+            ctx.moveTo(0, entryY);
+            ctx.lineTo(canvas.width, entryY);
+            ctx.stroke();
+            
+            // 진입가 핸들
+            ctx.fillStyle = '#9E9E9E';
+            ctx.beginPath();
+            ctx.arc(handleSize, entryY, handleRadius, 0, Math.PI * 2);
+            ctx.fill();
+            // 텍스트 배경
+            ctx.fillStyle = 'rgba(26, 31, 46, 0.9)';
+            ctx.fillRect(handleSize + handleRadius + 2, entryY - 8, 35, 14);
+            ctx.fillStyle = '#9E9E9E';
+            ctx.font = 'bold 10px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('진입', handleSize + handleRadius + 4, entryY + 4);
+            
+            // 익절가 선 (초록)
+            const tpY = priceToY(lineData.tp);
+            ctx.strokeStyle = '#26a69a';
+            ctx.lineWidth = lineWidth;
+            ctx.beginPath();
+            ctx.moveTo(0, tpY);
+            ctx.lineTo(canvas.width, tpY);
+            ctx.stroke();
+            
+            // 익절가 핸들
+            ctx.fillStyle = '#26a69a';
+            ctx.beginPath();
+            ctx.arc(handleSize, tpY, handleRadius, 0, Math.PI * 2);
+            ctx.fill();
+            // 텍스트 배경
+            ctx.fillStyle = 'rgba(26, 31, 46, 0.9)';
+            ctx.fillRect(handleSize + handleRadius + 2, tpY - 8, 35, 14);
+            ctx.fillStyle = '#26a69a';
+            ctx.fillText('익절', handleSize + handleRadius + 4, tpY + 4);
+            
+            // 손절가 선 (빨강)
+            const slY = priceToY(lineData.sl);
+            ctx.strokeStyle = '#ef5350';
+            ctx.lineWidth = lineWidth;
+            ctx.beginPath();
+            ctx.moveTo(0, slY);
+            ctx.lineTo(canvas.width, slY);
+            ctx.stroke();
+            
+            // 손절가 핸들
+            ctx.fillStyle = '#ef5350';
+            ctx.beginPath();
+            ctx.arc(handleSize, slY, handleRadius, 0, Math.PI * 2);
+            ctx.fill();
+            // 텍스트 배경
+            ctx.fillStyle = 'rgba(26, 31, 46, 0.9)';
+            ctx.fillRect(handleSize + handleRadius + 2, slY - 8, 35, 14);
+            ctx.fillStyle = '#ef5350';
+            ctx.fillText('손절', handleSize + handleRadius + 4, slY + 4);
+        }
+
+        // ========== 마우스 이벤트 처리 ==========
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+
+        function getTouchPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0] || e.changedTouches[0];
+            return {
+                x: touch.clientX - rect.left,
+                y: touch.clientY - rect.top
+            };
+        }
+
+        function getLineTypeAtY(y) {
+            const threshold = 15;
+            const entryY = priceToY(lineData.entry);
+            const tpY = priceToY(lineData.tp);
+            const slY = priceToY(lineData.sl);
+            
+            if (Math.abs(y - entryY) < threshold) return 'entry';
+            if (Math.abs(y - tpY) < threshold) return 'tp';
+            if (Math.abs(y - slY) < threshold) return 'sl';
+            return null;
+        }
+
+        function handleMouseDown(e) {
+            const pos = getMousePos(e);
+            const lineType = getLineTypeAtY(pos.y);
+            if (lineType) {
+                isDragging = true;
+                dragLineType = lineType;
+                canvas.classList.add('dragging');
+                e.preventDefault();
+                e.stopPropagation();
+            } else {
+                // 선이 아닌 곳을 클릭하면 포인터 이벤트 비활성화
+                canvas.style.pointerEvents = 'none';
+                setTimeout(() => {
+                    canvas.style.pointerEvents = '';
+                }, 100);
+            }
+        }
+
+        function handleMouseMove(e) {
+            if (!isDragging || !dragLineType) return;
+            
+            const pos = getMousePos(e);
+            const newPrice = yToPrice(pos.y);
+            
+            // 제약 조건 검증
+            if (dragLineType === 'entry') {
+                if (positionType === 'long') {
+                    if (newPrice >= lineData.tp || newPrice <= lineData.sl) return;
+                } else {
+                    if (newPrice <= lineData.tp || newPrice >= lineData.sl) return;
+                }
+                lineData.entry = newPrice;
+            } else if (dragLineType === 'tp') {
+                if (positionType === 'long') {
+                    if (newPrice <= lineData.entry) return;
+                } else {
+                    if (newPrice >= lineData.entry) return;
+                }
+                lineData.tp = newPrice;
+            } else if (dragLineType === 'sl') {
+                if (positionType === 'long') {
+                    if (newPrice >= lineData.entry) return;
+                } else {
+                    if (newPrice <= lineData.entry) return;
+                }
+                lineData.sl = newPrice;
+            }
+            
+            updateInfo();
+            updateInputs();
+            drawLines();
+            
+            if (AndroidBridge && AndroidBridge.onLineUpdated) {
+                AndroidBridge.onLineUpdated(dragLineType, lineData[dragLineType]);
+            }
+            
+            e.preventDefault();
+        }
+
+        function handleMouseUp(e) {
+            if (isDragging) {
+                isDragging = false;
+                dragLineType = null;
+                canvas.classList.remove('dragging');
+            }
+        }
+
+        // ========== 터치 이벤트 처리 ==========
+        function handleTouchStart(e) {
+            const pos = getTouchPos(e);
+            const lineType = getLineTypeAtY(pos.y);
+            if (lineType) {
+                isDragging = true;
+                dragLineType = lineType;
+                canvas.classList.add('dragging');
+                e.preventDefault();
+                e.stopPropagation();
+            } else {
+                // 선이 아닌 곳을 터치하면 포인터 이벤트 비활성화
+                canvas.style.pointerEvents = 'none';
+                setTimeout(() => {
+                    canvas.style.pointerEvents = '';
+                }, 100);
+            }
+        }
+
+        function handleTouchMove(e) {
+            if (!isDragging || !dragLineType) return;
+            const pos = getTouchPos(e);
+            const newPrice = yToPrice(pos.y);
+            
+            // 제약 조건 검증
+            if (dragLineType === 'entry') {
+                if (positionType === 'long') {
+                    if (newPrice >= lineData.tp || newPrice <= lineData.sl) return;
+                } else {
+                    if (newPrice <= lineData.tp || newPrice >= lineData.sl) return;
+                }
+                lineData.entry = newPrice;
+            } else if (dragLineType === 'tp') {
+                if (positionType === 'long') {
+                    if (newPrice <= lineData.entry) return;
+                } else {
+                    if (newPrice >= lineData.entry) return;
+                }
+                lineData.tp = newPrice;
+            } else if (dragLineType === 'sl') {
+                if (positionType === 'long') {
+                    if (newPrice >= lineData.entry) return;
+                } else {
+                    if (newPrice <= lineData.entry) return;
+                }
+                lineData.sl = newPrice;
+            }
+            
+            updateInfo();
+            updateInputs();
+            drawLines();
+            
+            if (AndroidBridge && AndroidBridge.onLineUpdated) {
+                AndroidBridge.onLineUpdated(dragLineType, lineData[dragLineType]);
+            }
+            
+            e.preventDefault();
+        }
+
+        function handleTouchEnd(e) {
+            if (isDragging) {
+                isDragging = false;
+                dragLineType = null;
+                canvas.classList.remove('dragging');
+            }
+        }
 
         // ========== 정보 업데이트 ==========
         function updateInfo() {
@@ -216,19 +633,105 @@
             }
 
             // R:R 비율 계산
-            const rrRatio = (lineData.tp - lineData.entry) / (lineData.entry - lineData.sl);
+            const risk = Math.abs(lineData.entry - lineData.sl);
+            const reward = Math.abs(lineData.tp - lineData.entry);
+            const rrRatio = risk > 0 ? reward / risk : 0;
             const rrRatioEl = document.getElementById('rrRatio');
             if (rrRatioEl) {
                 rrRatioEl.textContent = rrRatio.toFixed(2);
             }
 
             // P&L 계산 (예상)
-            const pnl = lineData.tp - lineData.entry;
+            const pnl = positionType === 'long' 
+                ? (lineData.tp - lineData.entry) 
+                : (lineData.entry - lineData.tp);
             const pnlElement = document.getElementById('pnlValue');
             if (pnlElement) {
                 pnlElement.textContent = `${pnl >= 0 ? '+' : ''}${pnl.toFixed(2)} USDT`;
                 pnlElement.className = pnl >= 0 ? 'info-value positive' : 'info-value negative';
             }
+        }
+
+        // ========== 입력 필드 업데이트 ==========
+        function updateInputs() {
+            const entryInput = document.getElementById('entryInput');
+            const tpInput = document.getElementById('tpInput');
+            const slInput = document.getElementById('slInput');
+            
+            if (entryInput && entryInput !== document.activeElement) {
+                entryInput.value = lineData.entry.toFixed(2);
+            }
+            if (tpInput && tpInput !== document.activeElement) {
+                tpInput.value = lineData.tp.toFixed(2);
+            }
+            if (slInput && slInput !== document.activeElement) {
+                slInput.value = lineData.sl.toFixed(2);
+            }
+        }
+
+        // ========== 입력 필드 이벤트 ==========
+        const entryInput = document.getElementById('entryInput');
+        const tpInput = document.getElementById('tpInput');
+        const slInput = document.getElementById('slInput');
+
+        if (entryInput) {
+            entryInput.addEventListener('change', (e) => {
+                const newPrice = parseFloat(e.target.value);
+                if (!isNaN(newPrice)) {
+                    // 제약 조건 검증
+                    if (positionType === 'long') {
+                        if (newPrice < lineData.sl || newPrice > lineData.tp) return;
+                    } else {
+                        if (newPrice > lineData.sl || newPrice < lineData.tp) return;
+                    }
+                    lineData.entry = newPrice;
+                    updateInfo();
+                    drawLines();
+                    if (AndroidBridge && AndroidBridge.onLineUpdated) {
+                        AndroidBridge.onLineUpdated('entry', lineData.entry);
+                    }
+                }
+            });
+        }
+
+        if (tpInput) {
+            tpInput.addEventListener('change', (e) => {
+                const newPrice = parseFloat(e.target.value);
+                if (!isNaN(newPrice)) {
+                    // 제약 조건 검증
+                    if (positionType === 'long') {
+                        if (newPrice <= lineData.entry) return;
+                    } else {
+                        if (newPrice >= lineData.entry) return;
+                    }
+                    lineData.tp = newPrice;
+                    updateInfo();
+                    drawLines();
+                    if (AndroidBridge && AndroidBridge.onLineUpdated) {
+                        AndroidBridge.onLineUpdated('tp', lineData.tp);
+                    }
+                }
+            });
+        }
+
+        if (slInput) {
+            slInput.addEventListener('change', (e) => {
+                const newPrice = parseFloat(e.target.value);
+                if (!isNaN(newPrice)) {
+                    // 제약 조건 검증
+                    if (positionType === 'long') {
+                        if (newPrice >= lineData.entry) return;
+                    } else {
+                        if (newPrice <= lineData.entry) return;
+                    }
+                    lineData.sl = newPrice;
+                    updateInfo();
+                    drawLines();
+                    if (AndroidBridge && AndroidBridge.onLineUpdated) {
+                        AndroidBridge.onLineUpdated('sl', lineData.sl);
+                    }
+                }
+            });
         }
 
         // ========== 버튼 이벤트 ==========
@@ -264,7 +767,11 @@
         }
 
         // ========== 초기화 ==========
-        updateInfo();
+        setTimeout(() => {
+            initCanvas();
+            updateInfo();
+            updateInputs();
+        }, 1000);
 
         // ========== Android 인터페이스 ==========
         window.updateTPSL = function(entry, tp, sl) {
@@ -278,6 +785,8 @@
                 lineData.sl = parseFloat(sl);
             }
             updateInfo();
+            updateInputs();
+            drawLines();
         };
 
         window.updateLines = function(entry, tp, sl) {
@@ -287,6 +796,8 @@
         window.setEntryPrice = function(price) {
             lineData.entry = parseFloat(price);
             updateInfo();
+            updateInputs();
+            drawLines();
             if (AndroidBridge && AndroidBridge.onLineUpdated) {
                 AndroidBridge.onLineUpdated('entry', lineData.entry);
             }
@@ -295,6 +806,8 @@
         window.setTakeProfit = function(price) {
             lineData.tp = parseFloat(price);
             updateInfo();
+            updateInputs();
+            drawLines();
             if (AndroidBridge && AndroidBridge.onLineUpdated) {
                 AndroidBridge.onLineUpdated('tp', lineData.tp);
             }
@@ -303,13 +816,29 @@
         window.setStopLoss = function(price) {
             lineData.sl = parseFloat(price);
             updateInfo();
+            updateInputs();
+            drawLines();
             if (AndroidBridge && AndroidBridge.onLineUpdated) {
                 AndroidBridge.onLineUpdated('sl', lineData.sl);
             }
         };
 
         window.setCurrentPrice = function(price) {
-            // 현재 가격 업데이트 (필요시 사용)
+            lineData.currentPrice = parseFloat(price);
+            // 진입가가 설정되지 않았으면 현재가로 설정
+            if (!lineData.entry || lineData.entry === 0) {
+                lineData.entry = lineData.currentPrice;
+                if (positionType === 'long') {
+                    lineData.tp = lineData.entry * 1.02;
+                    lineData.sl = lineData.entry * 0.98;
+                } else {
+                    lineData.tp = lineData.entry * 0.98;
+                    lineData.sl = lineData.entry * 1.02;
+                }
+                updateInfo();
+                updateInputs();
+            }
+            drawLines();
             if (AndroidBridge && AndroidBridge.onPriceUpdated) {
                 AndroidBridge.onPriceUpdated(parseFloat(price));
             }
@@ -322,7 +851,18 @@
         };
 
         window.setPositionType = function(long) {
-            // 포지션 타입 변경 (필요시 사용)
+            positionType = long ? 'long' : 'short';
+            // 제약 조건 재검증
+            if (positionType === 'long') {
+                if (lineData.entry >= lineData.tp) lineData.tp = lineData.entry * 1.02;
+                if (lineData.entry <= lineData.sl) lineData.sl = lineData.entry * 0.98;
+            } else {
+                if (lineData.entry <= lineData.tp) lineData.tp = lineData.entry * 0.98;
+                if (lineData.entry >= lineData.sl) lineData.sl = lineData.entry * 1.02;
+            }
+            updateInfo();
+            updateInputs();
+            drawLines();
         };
 
         window.setPositionSize = function(size) {

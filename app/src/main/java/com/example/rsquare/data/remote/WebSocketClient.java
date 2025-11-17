@@ -197,10 +197,15 @@ public class WebSocketClient {
                     String symbol = data.getString("s");
                     double price = data.getDouble("c");
                     
+                    Log.d(TAG, "Received ticker update: " + symbol + " = " + price);
+                    
                     // Binance 심볼을 CoinGecko ID로 변환
                     String coinId = getCoinIdFromSymbol(symbol);
                     if (coinId != null) {
+                        Log.d(TAG, "Notifying price update: " + coinId + " = " + price);
                         notifyPriceUpdate(coinId, price);
+                    } else {
+                        Log.w(TAG, "Could not convert symbol to coinId: " + symbol);
                     }
                 }
                 // kline 스트림인지 확인
@@ -242,10 +247,15 @@ public class WebSocketClient {
                 String symbol = json.getString("s");
                 double price = json.getDouble("c");
                 
+                Log.d(TAG, "Received single ticker update: " + symbol + " = " + price);
+                
                 // Binance 심볼을 CoinGecko ID로 변환
                 String coinId = getCoinIdFromSymbol(symbol);
                 if (coinId != null) {
+                    Log.d(TAG, "Notifying price update: " + coinId + " = " + price);
                     notifyPriceUpdate(coinId, price);
+                } else {
+                    Log.w(TAG, "Could not convert symbol to coinId: " + symbol);
                 }
             }
             // 단일 kline 스트림 형식: {"e":"kline","s":"BTCUSDT","k":{...}}
