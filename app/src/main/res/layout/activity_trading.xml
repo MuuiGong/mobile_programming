@@ -78,7 +78,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Entry"
+                    android:text="Entry Price"
                     android:textSize="14sp"
                     android:textColor="@color/tds_text_secondary" />
 
@@ -106,7 +106,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="TP"
+                    android:text="Take Profit"
                     android:textSize="14sp"
                     android:textColor="@color/tds_text_secondary" />
 
@@ -134,7 +134,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="SL"
+                    android:text="Stop Loss"
                     android:textSize="14sp"
                     android:textColor="@color/tds_text_secondary" />
 

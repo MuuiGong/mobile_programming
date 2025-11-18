@@ -146,6 +146,10 @@ public class TradingActivity extends AppCompatActivity {
         webSettings.setAllowFileAccess(true);
         webSettings.setAllowContentAccess(true);
         webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+
+        // 캐시 비활성화 (개발 중)
+        webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        tradingChart.clearCache(true);
         
         // WebChromeClient 설정 (콘솔 로그 확인용)
         tradingChart.setWebChromeClient(new android.webkit.WebChromeClient() {
@@ -214,19 +218,21 @@ public class TradingActivity extends AppCompatActivity {
                     }
                 }
                 
-                @Override
-                public void onChartReady() {
-                    android.util.Log.d("TradingActivity", "Chart ready callback received");
-                    runOnUiThread(() -> {
-                        isChartReady = true;
-                        // 대기 중인 OHLC 데이터가 있으면 전송
-                        if (pendingKlines != null && !pendingKlines.isEmpty()) {
-                            android.util.Log.d("TradingActivity", "Sending pending OHLC data");
-                            loadBinanceOHLCData(pendingKlines);
-                            pendingKlines = null;
-                        }
-                    });
-                }
+            @Override
+            public void onChartReady() {
+                android.util.Log.d("TradingActivity", "Chart ready callback received");
+                runOnUiThread(() -> {
+                    isChartReady = true;
+
+                    // 대기 중인 OHLC 데이터가 있으면 전송 (포지션 타입 설정은 데이터 로드 후 자동으로)
+                    if (pendingKlines != null && !pendingKlines.isEmpty()) {
+                        android.util.Log.d("TradingActivity", "Sending pending OHLC data");
+                        loadBinanceOHLCData(pendingKlines);
+                        pendingKlines = null;
+                    }
+                    // OHLC 데이터가 없어도 chart.html에서 기본 포지션 타입을 설정함
+                });
+            }
             }
         );
         
@@ -300,16 +306,32 @@ public class TradingActivity extends AppCompatActivity {
         
         // 롱 버튼
         btnLong.setOnClickListener(v -> {
-            isLong = true;
-            updatePositionButtons();
-            updateRiskMetrics();
+            android.util.Log.d("TradingActivity", "LONG button clicked, current isLong: " + isLong);
+            if (!isLong) {
+                android.util.Log.d("TradingActivity", "Switching to LONG position");
+                isLong = true;
+                updatePositionButtons();
+                updateRiskMetrics();
+                // 차트에 포지션 타입 변경 알림
+                setPositionType("long");
+            } else {
+                android.util.Log.d("TradingActivity", "Already in LONG position");
+            }
         });
-        
+
         // 숏 버튼
         btnShort.setOnClickListener(v -> {
-            isLong = false;
-            updatePositionButtons();
-            updateRiskMetrics();
+            android.util.Log.d("TradingActivity", "SHORT button clicked, current isLong: " + isLong);
+            if (isLong) {
+                android.util.Log.d("TradingActivity", "Switching to SHORT position");
+                isLong = false;
+                updatePositionButtons();
+                updateRiskMetrics();
+                // 차트에 포지션 타입 변경 알림
+                setPositionType("short");
+            } else {
+                android.util.Log.d("TradingActivity", "Already in SHORT position");
+            }
         });
         
         // 거래 진입 버튼
@@ -327,6 +349,42 @@ public class TradingActivity extends AppCompatActivity {
             btnLong.setBackgroundResource(R.drawable.btn_secondary);
             btnShort.setBackgroundResource(R.drawable.btn_primary);
         }
+    }
+
+    /**
+     * 포지션 타입을 차트에 설정하고 EP, TP, SL 위치 조정
+     */
+    private void setPositionType(String positionType) {
+        android.util.Log.d("TradingActivity", "=== SET POSITION TYPE: " + positionType + " ===");
+
+        String jsCode = String.format(
+            "(function() { " +
+            "  try { " +
+            "    console.log('=== JAVA CALL: setPositionType ==='); " +
+            "    if (typeof adjustLinesForPositionType === 'function') { " +
+            "      console.log('Calling adjustLinesForPositionType with:', '%s'); " +
+            "      adjustLinesForPositionType('%s'); " +
+            "    } else { " +
+            "      console.error('adjustLinesForPositionType function not found'); " +
+            "    } " +
+            "    console.log('=== JAVA CALL COMPLETED ==='); " +
+            "  } catch (error) { " +
+            "    console.error('Error in setPositionType:', error); " +
+            "  } " +
+            "})();",
+            positionType, positionType
+        );
+
+        tradingChart.post(() -> {
+            if (tradingChart != null) {
+                android.util.Log.d("TradingActivity", "Evaluating JavaScript for position type: " + positionType);
+                tradingChart.evaluateJavascript(jsCode, result -> {
+                    android.util.Log.d("TradingActivity", "JavaScript evaluation result: " + result);
+                });
+            } else {
+                android.util.Log.e("TradingActivity", "TradingChart is null!");
+            }
+        });
     }
     
     /**
