@@ -4,7 +4,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/tds_bg_black">
+    android:background="@color/tds_bg_black"
+    android:fitsSystemWindows="true">
 
     <!-- Toolbar -->
     <androidx.appcompat.widget.Toolbar
@@ -39,13 +40,133 @@
                 android:textColor="@color/tds_text_secondary" />
         </LinearLayout>
     </androidx.appcompat.widget.Toolbar>
+    
+    <!-- 타임프레임 선택 버튼들 -->
+    <HorizontalScrollView
+        android:id="@+id/timeframe_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:scrollbars="none"
+        android:fadingEdge="horizontal"
+        android:fadingEdgeLength="16dp"
+        android:background="@color/tds_bg_dark"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+        
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:paddingHorizontal="8dp"
+            android:gravity="center_vertical">
+            
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_time_1m"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:text="1m"
+                android:textSize="12sp"
+                android:textColor="#d1d4dc"
+                android:minWidth="0dp"
+                android:paddingHorizontal="10dp"
+                android:backgroundTint="@android:color/transparent"
+                android:insetTop="0dp"
+                android:insetBottom="0dp" />
+            
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_time_5m"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:text="5m"
+                android:textSize="12sp"
+                android:textColor="#d1d4dc"
+                android:minWidth="0dp"
+                android:paddingHorizontal="10dp"
+                android:backgroundTint="@android:color/transparent"
+                android:insetTop="0dp"
+                android:insetBottom="0dp" />
+            
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_time_15m"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:text="15m"
+                android:textSize="12sp"
+                android:textColor="#d1d4dc"
+                android:minWidth="0dp"
+                android:paddingHorizontal="10dp"
+                android:backgroundTint="@android:color/transparent"
+                android:insetTop="0dp"
+                android:insetBottom="0dp" />
+            
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_time_30m"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:text="30m"
+                android:textSize="12sp"
+                android:textColor="#d1d4dc"
+                android:minWidth="0dp"
+                android:paddingHorizontal="10dp"
+                android:backgroundTint="@android:color/transparent"
+                android:insetTop="0dp"
+                android:insetBottom="0dp" />
+            
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_time_1h"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:text="1h"
+                android:textSize="12sp"
+                android:textColor="#d1d4dc"
+                android:minWidth="0dp"
+                android:paddingHorizontal="10dp"
+                android:backgroundTint="@android:color/transparent"
+                android:insetTop="0dp"
+                android:insetBottom="0dp" />
+            
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_time_4h"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:text="4h"
+                android:textSize="12sp"
+                android:textColor="#d1d4dc"
+                android:minWidth="0dp"
+                android:paddingHorizontal="10dp"
+                android:backgroundTint="@android:color/transparent"
+                android:insetTop="0dp"
+                android:insetBottom="0dp" />
+            
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_time_1d"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:text="1D"
+                android:textSize="12sp"
+                android:textColor="#d1d4dc"
+                android:minWidth="0dp"
+                android:paddingHorizontal="10dp"
+                android:backgroundTint="@android:color/transparent"
+                android:insetTop="0dp"
+                android:insetBottom="0dp" />
+        </LinearLayout>
+    </HorizontalScrollView>
 
     <!-- TradingView WebView -->
     <WebView
         android:id="@+id/trading_chart"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintTop_toBottomOf="@id/timeframe_scroll"
         app:layout_constraintBottom_toTopOf="@id/control_panel"
         app:layout_constraintStart_toStartOf="parent" />
 
@@ -54,7 +175,8 @@
         android:id="@+id/control_panel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="12dp"
+        android:layout_margin="4dp"
+        android:layout_marginBottom="4dp"
         app:cardBackgroundColor="@color/tds_bg_dark"
         app:cardCornerRadius="12dp"
         app:cardElevation="0dp"
@@ -65,90 +187,166 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="8dp">
 
-            <!-- Entry Price -->
+            <!-- Entry, TP, SL 가격 입력 (3열) -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="6dp">
 
-                <TextView
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Entry Price"
-                    android:textSize="14sp"
-                    android:textColor="@color/tds_text_secondary" />
-
+                    android:orientation="vertical"
+                    android:layout_marginEnd="4dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Entry"
+                        android:textSize="11sp"
+                        android:textColor="@color/tds_text_secondary"
+                        android:layout_marginBottom="2dp" />
                 <EditText
                     android:id="@+id/entry_price_input"
-                    android:layout_width="140dp"
-                    android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:layout_height="36dp"
                     android:hint="0.00"
-                    android:textSize="14sp"
+                        android:textSize="12sp"
                     android:textColor="@color/tds_text_primary"
                     android:inputType="numberDecimal|numberSigned"
                     android:background="@drawable/edit_text_background"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="8dp" />
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="4dp" />
             </LinearLayout>
 
-            <!-- TP Price -->
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="12dp">
-
-                <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Take Profit"
-                    android:textSize="14sp"
-                    android:textColor="@color/tds_text_secondary" />
-
+                    android:orientation="vertical"
+                    android:layout_marginHorizontal="4dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="TP"
+                        android:textSize="11sp"
+                        android:textColor="@color/tds_success_alt"
+                        android:layout_marginBottom="2dp" />
                 <EditText
                     android:id="@+id/tp_price_input"
-                    android:layout_width="140dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="36dp"
+                        android:hint="0.00"
+                        android:textSize="12sp"
+                        android:textColor="@color/tds_success_alt"
+                        android:inputType="numberDecimal|numberSigned"
+                        android:background="@drawable/edit_text_background"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="4dp" />
+                </LinearLayout>
+                
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="4dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="SL"
+                        android:textSize="11sp"
+                        android:textColor="@color/tds_error_alt"
+                        android:layout_marginBottom="2dp" />
+                    <EditText
+                        android:id="@+id/sl_price_input"
+                        android:layout_width="match_parent"
+                        android:layout_height="36dp"
                     android:hint="0.00"
-                    android:textSize="14sp"
-                    android:textColor="@color/tds_success_alt"
+                        android:textSize="12sp"
+                        android:textColor="@color/tds_error_alt"
                     android:inputType="numberDecimal|numberSigned"
                     android:background="@drawable/edit_text_background"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="8dp" />
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="4dp" />
+                </LinearLayout>
             </LinearLayout>
 
-            <!-- SL Price -->
+            <!-- Risk Amount & Margin Mode (한 줄) -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="6dp">
 
-                <TextView
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Stop Loss"
-                    android:textSize="14sp"
-                    android:textColor="@color/tds_text_secondary" />
-
+                    android:orientation="vertical"
+                    android:layout_marginEnd="4dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="거래 금액"
+                        android:textSize="11sp"
+                        android:textColor="@color/tds_text_secondary"
+                        android:layout_marginBottom="2dp" />
                 <EditText
-                    android:id="@+id/sl_price_input"
-                    android:layout_width="140dp"
+                        android:id="@+id/risk_amount_input"
+                        android:layout_width="match_parent"
+                        android:layout_height="36dp"
+                        android:hint="자동"
+                        android:textSize="12sp"
+                        android:textColor="@color/tds_text_primary"
+                        android:inputType="numberDecimal"
+                        android:background="@drawable/edit_text_background"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="4dp" />
+                </LinearLayout>
+                
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:hint="0.00"
-                    android:textSize="14sp"
-                    android:textColor="@color/tds_error_alt"
-                    android:inputType="numberDecimal|numberSigned"
-                    android:background="@drawable/edit_text_background"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="8dp" />
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="4dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="마진 모드"
+                        android:textSize="11sp"
+                        android:textColor="@color/tds_text_secondary"
+                        android:layout_marginBottom="2dp" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="36dp"
+                        android:orientation="horizontal">
+                        <Button
+                            android:id="@+id/btn_margin_isolated"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:text="Isolated"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:background="@drawable/btn_secondary"
+                            android:layout_marginEnd="2dp" />
+                        <Button
+                            android:id="@+id/btn_margin_cross"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:text="Cross"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:background="@drawable/btn_primary"
+                            android:layout_marginStart="2dp" />
+                    </LinearLayout>
+                </LinearLayout>
             </LinearLayout>
 
             <!-- Leverage & Position Type -->
@@ -156,29 +354,29 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="6dp">
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical"
-                    android:layout_marginEnd="8dp">
+                    android:layout_marginEnd="4dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="레버리지"
-                        android:textSize="12sp"
+                        android:textSize="11sp"
                         android:textColor="@color/tds_text_secondary"
-                        android:layout_marginBottom="4dp" />
+                        android:layout_marginBottom="2dp" />
 
                     <Spinner
                         android:id="@+id/leverage_spinner"
                         android:layout_width="match_parent"
-                        android:layout_height="40dp"
+                        android:layout_height="36dp"
                         android:background="@drawable/edit_text_background"
-                        android:paddingHorizontal="12dp" />
+                        android:paddingHorizontal="8dp" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -186,19 +384,19 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical"
-                    android:layout_marginStart="8dp">
+                    android:layout_marginStart="4dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="포지션"
-                        android:textSize="12sp"
+                        android:textSize="11sp"
                         android:textColor="@color/tds_text_secondary"
-                        android:layout_marginBottom="4dp" />
+                        android:layout_marginBottom="2dp" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="40dp"
+                        android:layout_height="36dp"
                         android:orientation="horizontal">
 
                         <Button
@@ -207,10 +405,10 @@
                             android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:text="롱"
-                            android:textSize="14sp"
+                            android:textSize="12sp"
                             android:textStyle="bold"
                             android:background="@drawable/btn_primary"
-                            android:layout_marginEnd="4dp" />
+                            android:layout_marginEnd="2dp" />
 
                         <Button
                             android:id="@+id/btn_short"
@@ -218,32 +416,33 @@
                             android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:text="숏"
-                            android:textSize="14sp"
+                            android:textSize="12sp"
                             android:textStyle="bold"
                             android:background="@drawable/btn_secondary"
-                            android:layout_marginStart="4dp" />
+                            android:layout_marginStart="2dp" />
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- R:R Ratio & Risk Score -->
+            <!-- R:R Ratio, Risk Score & Liquidation (한 줄) -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="6dp">
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:layout_marginEnd="4dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="R:R Ratio"
-                        android:textSize="12sp"
+                        android:text="R:R"
+                        android:textSize="10sp"
                         android:textColor="@color/tds_text_secondary" />
 
                     <TextView
@@ -251,7 +450,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="1.24:1"
-                        android:textSize="18sp"
+                        android:textSize="14sp"
                         android:textColor="@color/tds_text_primary"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -260,13 +459,14 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:layout_marginHorizontal="4dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Risk Score"
-                        android:textSize="12sp"
+                        android:text="Risk"
+                        android:textSize="10sp"
                         android:textColor="@color/tds_text_secondary" />
 
                     <TextView
@@ -274,8 +474,32 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="75/100 🟢"
-                        android:textSize="18sp"
+                        android:textSize="14sp"
                         android:textColor="@color/risk_safe"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="4dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="청산가"
+                        android:textSize="10sp"
+                        android:textColor="@color/tds_text_secondary" />
+
+                    <TextView
+                        android:id="@+id/liquidation_price_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="--"
+                        android:textSize="12sp"
+                        android:textColor="@color/tds_warning"
                         android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
@@ -284,13 +508,13 @@
             <Button
                 android:id="@+id/btn_enter_trade"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="40dp"
                 android:text="거래 진입"
                 android:textColor="@color/tds_text_primary"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:background="@drawable/btn_primary"
-                android:layout_marginTop="8dp" />
+                android:layout_marginTop="2dp" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -39,7 +39,7 @@ import java.util.Locale;
  * Chart Fragment
  * WebView 기반 인터랙티브 차트 및 거래 UI
  */
-public class ChartFragment extends Fragment implements ChartWebViewInterface.ChartCallback {
+public class ChartFragment extends Fragment implements ChartWebViewInterface.ExtendedChartCallback {
     
     private ChartViewModel viewModel;
     private WebView chartWebView;
@@ -57,6 +57,9 @@ public class ChartFragment extends Fragment implements ChartWebViewInterface.Cha
     private MaterialButton btnChartType, btnIndicators, btnDrawingTools;
     private String currentTimeframe = "1h"; // 기본 시간 단위
     private String currentChartType = "candlestick"; // 기본 차트 타입
+    
+    // 차트 준비 상태 플래그
+    private boolean isChartReady = false;
     
     @Nullable
     @Override
@@ -218,15 +221,29 @@ public class ChartFragment extends Fragment implements ChartWebViewInterface.Cha
                 view.postDelayed(() -> {
                     android.util.Log.d("ChartFragment", "Setting up chart after page load");
                     
+                    // 차트가 준비되었다고 가정 (onChartReady가 호출되지 않을 수 있으므로)
+                    // 일정 시간 후에 isChartReady를 true로 설정
+                    view.postDelayed(() -> {
+                        isChartReady = true;
+                        android.util.Log.d("ChartFragment", "isChartReady set to true after page load delay");
+                    }, 1000);
+                    
                     // 심볼 설정
                     if (viewModel.getSelectedCoinId().getValue() != null) {
                         String coinId = viewModel.getSelectedCoinId().getValue();
                         callJavaScript("if (typeof setSymbol === 'function') { setSymbol('" + coinId + "'); }");
                     }
-                    // 현재 가격 설정
+                    // 현재 가격 설정 (실시간 WebSocket 데이터)
                     if (viewModel.getCurrentPrice().getValue() != null) {
                         Double price = viewModel.getCurrentPrice().getValue();
-                        callJavaScript("if (typeof setCurrentPrice === 'function') { setCurrentPrice(" + price + "); }");
+                        String jsCode = String.format(Locale.US,
+                            "if (typeof setCurrentPrice === 'function') { " +
+                            "console.log('Setting initial price from WebSocket:', %f); " +
+                            "setCurrentPrice(%f); }",
+                            price, price
+                        );
+                        callJavaScript(jsCode);
+                        
                         // 진입가가 설정되지 않았으면 현재 가격으로 설정
                         if (etEntryPrice.getText().toString().isEmpty()) {
                             etEntryPrice.setText(String.valueOf(price));
@@ -310,14 +327,18 @@ public class ChartFragment extends Fragment implements ChartWebViewInterface.Cha
         
         // 현재 가격 관찰 (웹소켓 실시간 업데이트)
         viewModel.getCurrentPrice().observe(getViewLifecycleOwner(), price -> {
-            if (price != null) {
+            if (price != null && price > 0) {
                 android.util.Log.d("ChartFragment", "Current price updated from WebSocket: " + price);
                 tvCurrentPrice.setText("$" + String.format(Locale.US, "%.2f", price));
                 
-                // JavaScript에 현재가 업데이트 알림
-                String jsCode = "if (typeof setCurrentPrice === 'function') { " +
-                    "console.log('Setting current price from Android:', " + price + "); " +
-                    "setCurrentPrice(" + price + "); }";
+                // JavaScript에 실시간 가격 업데이트 전달 (차트가 준비되지 않았어도 시도)
+                // chart.html의 setCurrentPrice 함수가 차트 준비 여부를 체크함
+                String jsCode = String.format(Locale.US,
+                    "if (typeof setCurrentPrice === 'function') { " +
+                    "console.log('Real-time price update from WebSocket:', %f); " +
+                    "setCurrentPrice(%f); }",
+                    price, price
+                );
                 callJavaScript(jsCode);
                 
                 // 진입가가 설정되지 않았으면 현재 가격으로 설정
@@ -363,7 +384,8 @@ public class ChartFragment extends Fragment implements ChartWebViewInterface.Cha
         
         // 실시간 캔들스틱 업데이트 관찰
         viewModel.getKlineUpdate().observe(getViewLifecycleOwner(), klineData -> {
-            if (klineData != null) {
+            if (klineData != null && isChartReady) {
+                android.util.Log.d("ChartFragment", "Real-time kline update: " + klineData.coinId + " " + klineData.close);
                 // JavaScript에 실시간 캔들 업데이트 전달
                 String jsCode = String.format(Locale.US,
                     "if (typeof updateKline === 'function') { " +
@@ -376,6 +398,8 @@ public class ChartFragment extends Fragment implements ChartWebViewInterface.Cha
                     klineData.volume
                 );
                 callJavaScript(jsCode);
+            } else if (klineData != null) {
+                android.util.Log.d("ChartFragment", "Chart not ready yet, kline update will be sent when ready");
             }
         });
     }
@@ -484,11 +508,11 @@ public class ChartFragment extends Fragment implements ChartWebViewInterface.Cha
         // 활성화된 버튼 표시
         setTimeframeButtonActive(button);
         
+        // ViewModel에 시간 프레임 변경 알림
+        viewModel.setTimeframe(timeframe);
+        
         // JavaScript에 시간 단위 변경 알림
         callJavaScript("if (typeof setTimeframe === 'function') { setTimeframe('" + timeframe + "'); }");
-        
-        // TradingView Advanced Chart는 자체적으로 데이터를 가져오므로
-        // 별도의 차트 데이터 로드 불필요
     }
     
     /**
@@ -784,6 +808,10 @@ public class ChartFragment extends Fragment implements ChartWebViewInterface.Cha
         }
         
         try {
+            // 디버깅: setCurrentPrice 호출인 경우 로그 출력
+            if (script.contains("setCurrentPrice")) {
+                android.util.Log.d("ChartFragment", "Calling setCurrentPrice from ChartFragment");
+            }
             // 디버깅: setOHLCData 호출인 경우 로그 출력
             if (script.contains("setOHLCData")) {
                 android.util.Log.d("ChartFragment", "Calling setOHLCData, script length: " + script.length());
@@ -792,14 +820,19 @@ public class ChartFragment extends Fragment implements ChartWebViewInterface.Cha
             chartWebView.post(() -> {
                 if (chartWebView != null) {
                     chartWebView.evaluateJavascript(script, value -> {
+                        if (script.contains("setCurrentPrice")) {
+                            android.util.Log.d("ChartFragment", "setCurrentPrice JavaScript executed, result: " + value);
+                        }
                         if (script.contains("setOHLCData") && value != null) {
                             android.util.Log.d("ChartFragment", "setOHLCData JavaScript result: " + value);
                         }
                         // JavaScript 실행 결과 로깅 (디버깅용)
-                        if (value != null && !value.equals("null")) {
+                        if (value != null && !value.equals("null") && !value.equals("undefined")) {
                             android.util.Log.d("ChartFragment", "JavaScript result: " + value);
                         }
                     });
+                } else {
+                    android.util.Log.w("ChartFragment", "chartWebView is null in post callback");
                 }
             });
         } catch (Exception e) {
@@ -839,6 +872,31 @@ public class ChartFragment extends Fragment implements ChartWebViewInterface.Cha
             etStopLoss.setText(String.valueOf(price));
             viewModel.updateStopLoss(price);
             calculateRiskReward();
+        });
+    }
+    
+    // ExtendedChartCallback 구현
+    @Override
+    public void onChartReady() {
+        android.util.Log.d("ChartFragment", "Chart ready callback received");
+        requireActivity().runOnUiThread(() -> {
+            isChartReady = true;
+            android.util.Log.d("ChartFragment", "isChartReady set to true");
+            
+            // 차트 준비 후 대기 중인 가격 업데이트 전송
+            if (viewModel.getCurrentPrice().getValue() != null) {
+                Double price = viewModel.getCurrentPrice().getValue();
+                if (price != null && price > 0) {
+                    android.util.Log.d("ChartFragment", "Sending pending price update after chart ready: " + price);
+                    String jsCode = String.format(Locale.US,
+                        "if (typeof setCurrentPrice === 'function') { " +
+                        "console.log('Sending pending price update after chart ready:', %f); " +
+                        "setCurrentPrice(%f); }",
+                        price, price
+                    );
+                    callJavaScript(jsCode);
+                }
+            }
         });
     }
     

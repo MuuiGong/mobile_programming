@@ -360,6 +360,18 @@ public class MarketDataRepository implements WebSocketClient.PriceUpdateListener
      * @param listener 콜백
      */
     public void getBinanceKlines(String coinId, int days, OnBinanceKlinesLoadedListener listener) {
+        getBinanceKlines(coinId, null, days, listener);
+    }
+    
+    /**
+     * Binance klines 데이터를 직접 반환 (OHLC 형식, 시간 프레임 지정 가능)
+     * 
+     * @param coinId 코인 ID (예: "bitcoin")
+     * @param interval 시간 프레임 (예: "1m", "5m", "1h", "4h", "1d") - null이면 days에 따라 자동 결정
+     * @param days 조회 기간 (일)
+     * @param listener 콜백
+     */
+    public void getBinanceKlines(String coinId, String interval, int days, OnBinanceKlinesLoadedListener listener) {
         // Binance 심볼로 변환
         String binanceSymbol = SYMBOL_MAP.get(coinId.toLowerCase());
         if (binanceSymbol == null) {
@@ -369,23 +381,21 @@ public class MarketDataRepository implements WebSocketClient.PriceUpdateListener
             return;
         }
         
-        // 간격 결정 (days에 따라)
-        String interval = "1h"; // 기본값
-        int limit = 500; // 기본값
-        
+        // 간격 결정 (interval이 지정되지 않으면 days에 따라 자동 결정)
+        if (interval == null || interval.isEmpty()) {
         if (days <= 1) {
             interval = "5m";
-            limit = 288; // 24시간 / 5분 = 288개
         } else if (days <= 7) {
             interval = "1h";
-            limit = days * 24; // 시간당 1개
         } else if (days <= 30) {
             interval = "4h";
-            limit = days * 6; // 4시간당 1개
         } else {
             interval = "1d";
-            limit = days;
+            }
         }
+        
+        // limit 계산 (interval에 따라)
+        int limit = calculateLimit(interval, days);
         
         Log.d(TAG, "Fetching Binance klines directly: " + binanceSymbol + " interval=" + interval + " limit=" + limit);
         
@@ -527,6 +537,54 @@ public class MarketDataRepository implements WebSocketClient.PriceUpdateListener
             }
         }
         return 0.0;
+    }
+    
+    /**
+     * 시간 프레임과 일수에 따라 limit 계산
+     */
+    private int calculateLimit(String interval, int days) {
+        // interval에 따라 분당, 시간당, 일당 캔들 수 계산
+        int candlesPerDay = 1;
+        
+        switch (interval) {
+            case "1m":
+                candlesPerDay = 24 * 60; // 1440
+                break;
+            case "5m":
+                candlesPerDay = 24 * 12; // 288
+                break;
+            case "15m":
+                candlesPerDay = 24 * 4; // 96
+                break;
+            case "30m":
+                candlesPerDay = 24 * 2; // 48
+                break;
+            case "1h":
+                candlesPerDay = 24; // 24
+                break;
+            case "4h":
+                candlesPerDay = 6; // 6
+                break;
+            case "1d":
+                candlesPerDay = 1; // 1
+                break;
+            default:
+                candlesPerDay = 24; // 기본값: 1시간
+        }
+        
+        int limit = days * candlesPerDay;
+        
+        // 최대 1000개로 제한 (Binance API 제한)
+        if (limit > 1000) {
+            limit = 1000;
+        }
+        
+        // 최소 100개
+        if (limit < 100) {
+            limit = 100;
+        }
+        
+        return limit;
     }
     
     /**

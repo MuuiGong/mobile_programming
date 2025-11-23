@@ -42,7 +42,7 @@ import java.util.concurrent.Executors;
         Badge.class,
         UserSettings.class
     },
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 @TypeConverters(DateConverter.class)
@@ -193,6 +193,17 @@ public abstract class AppDatabase extends RoomDatabase {
                                 database.execSQL("DROP TABLE user_settings");
                                 database.execSQL("ALTER TABLE user_settings_new RENAME TO user_settings");
                                 database.execSQL("CREATE INDEX IF NOT EXISTS index_user_settings_userId ON user_settings(userId)");
+                            }
+                        },
+                        // Migration 3 -> 4: marginMode 필드 추가
+                        new androidx.room.migration.Migration(3, 4) {
+                            @Override
+                            public void migrate(@NonNull androidx.sqlite.db.SupportSQLiteDatabase database) {
+                                // Position 테이블에 marginMode 컬럼 추가
+                                database.execSQL("ALTER TABLE positions ADD COLUMN marginMode TEXT DEFAULT 'CROSS'");
+                                
+                                // UserSettings 테이블에 defaultMarginMode 컬럼 추가
+                                database.execSQL("ALTER TABLE user_settings ADD COLUMN defaultMarginMode TEXT DEFAULT 'CROSS'");
                             }
                         }
                     )

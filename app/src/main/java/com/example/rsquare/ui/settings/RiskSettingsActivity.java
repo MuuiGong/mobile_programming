@@ -7,7 +7,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
+import com.example.rsquare.ui.BaseActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
 
@@ -16,7 +16,7 @@ import com.example.rsquare.R;
 /**
  * 고급 리스크 관리 설정 Activity
  */
-public class RiskSettingsActivity extends AppCompatActivity {
+public class RiskSettingsActivity extends BaseActivity {
     
     private EditText dailyLossLimit;
     private SwitchCompat enableDailyLossLimit;

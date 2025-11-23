@@ -7,7 +7,7 @@ import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
+import com.example.rsquare.ui.BaseActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
 
@@ -16,7 +16,7 @@ import com.example.rsquare.R;
 /**
  * 데이터 내보내기 Activity
  */
-public class ExportActivity extends AppCompatActivity {
+public class ExportActivity extends BaseActivity {
     
     private SwitchCompat exportTradeHistory;
     private SwitchCompat exportSessionReports;

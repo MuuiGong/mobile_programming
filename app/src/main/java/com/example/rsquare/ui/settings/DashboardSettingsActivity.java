@@ -7,7 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
+import com.example.rsquare.ui.BaseActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
@@ -17,7 +17,7 @@ import com.example.rsquare.R;
 /**
  * 대시보드 설정 Activity
  */
-public class DashboardSettingsActivity extends AppCompatActivity {
+public class DashboardSettingsActivity extends BaseActivity {
     
     private CardView templateBeginner;
     private CardView templateAdvanced;

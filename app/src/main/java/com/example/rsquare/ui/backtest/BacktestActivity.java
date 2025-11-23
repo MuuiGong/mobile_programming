@@ -9,7 +9,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
+import com.example.rsquare.ui.BaseActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
 
@@ -18,7 +18,7 @@ import com.example.rsquare.R;
 /**
  * 백테스트 Activity
  */
-public class BacktestActivity extends AppCompatActivity {
+public class BacktestActivity extends BaseActivity {
     
     private Spinner symbolSpinner;
     private EditText startDate;

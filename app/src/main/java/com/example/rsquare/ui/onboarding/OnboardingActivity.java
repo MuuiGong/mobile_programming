@@ -7,7 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
+import com.example.rsquare.ui.BaseActivity;
 
 import com.example.rsquare.R;
 import com.example.rsquare.ui.MainActivity;
@@ -16,7 +16,7 @@ import com.example.rsquare.ui.onboarding.SurveyActivity;
 /**
  * 온보딩 화면 Activity
  */
-public class OnboardingActivity extends AppCompatActivity {
+public class OnboardingActivity extends BaseActivity {
     
     private TextView titleText;
     private TextView descriptionText;

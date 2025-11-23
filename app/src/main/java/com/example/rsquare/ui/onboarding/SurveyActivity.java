@@ -9,7 +9,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
+import com.example.rsquare.ui.BaseActivity;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 
@@ -19,7 +19,7 @@ import com.example.rsquare.ui.MainActivity;
 /**
  * 온보딩 설문조사 Activity
  */
-public class SurveyActivity extends AppCompatActivity {
+public class SurveyActivity extends BaseActivity {
     
     private ProgressBar progressBar;
     private TextView questionNumber;

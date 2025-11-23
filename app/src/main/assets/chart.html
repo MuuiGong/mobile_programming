@@ -94,13 +94,33 @@
             touch-action: none;
             background: transparent;
         }
+
+        /* 차트 하단 시간 표시 */
+        #update-time-display {
+            position: absolute;
+            bottom: 4px;
+            right: 8px;
+            z-index: 1500;
+            pointer-events: none;
+            display: block;
+            text-align: right;
+        }
+        
+        #update-time-display .time-value {
+            color: #888;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 13px;
+            font-weight: 400;
+            letter-spacing: 0.2px;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
     <div id="container">
         <div class="top-bar">
             <div class="coin-info">
-                <span class="coin-name">BTCUSDT</span>
+                <span class="coin-name" id="coinName">BTCUSDT</span>
                 <span class="current-price" id="currentPrice">--</span>
                 <span class="price-change" id="priceChange">--</span>
             </div>
@@ -108,6 +128,10 @@
         <div id="chart-container">
             <div id="chart"></div>
             <canvas id="overlay-canvas"></canvas>
+            <!-- 차트 하단 타임스케일 옆 시간 표시 -->
+            <div id="update-time-display">
+                <span class="time-value" id="updateTime">--:--:--</span>
+            </div>
         </div>
     </div>
 
@@ -120,8 +144,9 @@
             entry: null,
             tp: null,
             sl: null,
-            currentPrice: null,  // 실제 데이터 로드 전까지 null
-            basePrice: null      // 실제 데이터 로드 전까지 null
+            liquidationPrice: null, // 청산 예산가
+            currentPrice: null,
+            basePrice: null
         };
 
         let positionType = 'long'; // 'long' or 'short'
@@ -130,6 +155,10 @@
         let volumeSeries = null;
         let chartReady = false;
         let pendingKlines = null;
+        
+        // 실시간 업데이트 시간 추적
+        let lastUpdateTime = null;
+        let lastCandleTime = null;
 
         // 오버레이 캔버스
         let canvas = null;
@@ -259,7 +288,7 @@
                 }
             }
 
-            // 샘플 데이터 생성 제거 - 실제 데이터만 사용
+            // 샘플 데이터 생성 제거 - 실시간 데이터만 사용
             // generateSampleData();
 
             // 리사이즈 핸들러
@@ -276,11 +305,12 @@
             console.log('Chart initialization completed');
         }
 
-        // ========== 샘플 데이터 생성 ==========
-        // 목 데이터 제거 - 실제 데이터만 사용
-        // function generateSampleData() {
-        //     ... 제거됨 ...
-        // }
+        // ========== 샘플 데이터 생성 함수 제거됨 - 실시간 데이터만 사용 ==========
+        /*
+        function generateSampleData() {
+            // Mock 데이터 생성 함수 - 제거됨
+        }
+        */
 
         // ========== 오버레이 캔버스 초기화 ==========
         function initCanvas() {
@@ -334,9 +364,7 @@
         // ========== 오버레이 그리기 ==========
         function drawOverlay() {
             console.log('=== drawOverlay called ===');
-            console.log('Current positionType:', positionType, 'type:', typeof positionType);
-            console.log('Current tradeData:', JSON.stringify(tradeData));
-
+            
             if (!canvas || !ctx || !candlestickSeries) {
                 console.error('drawOverlay: Missing components', {
                     canvas: !!canvas,
@@ -375,11 +403,6 @@
             canvas.style.visibility = 'visible';
             canvas.style.opacity = '1';
 
-            // 캔버스 완전히 클리어 (여러 번 시도하여 이전 그림 완전히 제거)
-            ctx.save();
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.restore();
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             if (!candlestickSeries) {
@@ -391,6 +414,11 @@
                 }, 100);
                 return;
             }
+            
+            // 가격 스케일 영역 너비 추정 (오른쪽 가격 스케일이 차지하는 공간)
+            // Lightweight Charts에서 가격 스케일은 보통 50-80px 정도 차지
+            const priceScaleWidth = 80; // 가격 스케일 영역 너비 (조정 가능)
+            const lineEndX = canvas.width - priceScaleWidth; // 라인이 끝나는 X 좌표
 
             // priceToCoordinate는 candlestickSeries에서 직접 호출해야 함
             if (typeof candlestickSeries.priceToCoordinate !== 'function') {
@@ -411,9 +439,45 @@
                 return;
             }
 
-            // 모든 라인의 y 좌표 계산 (색칠과 라인 그리기 모두에 필요)
-            let epY = null, tpY = null, slY = null;
+            // EP-TP 영역 색칠
+            if (tradeData.entry !== null && tradeData.tp !== null) {
+                try {
+                    const epY = candlestickSeries.priceToCoordinate(tradeData.entry);
+                    const tpY = candlestickSeries.priceToCoordinate(tradeData.tp);
+                    
+                    if (epY !== null && epY !== undefined && !isNaN(epY) &&
+                        tpY !== null && tpY !== undefined && !isNaN(tpY) &&
+                        epY >= 0 && epY <= canvas.height &&
+                        tpY >= 0 && tpY <= canvas.height) {
+                        ctx.fillStyle = positionType === 'long' ? 'rgba(38, 166, 154, 0.1)' : 'rgba(239, 83, 80, 0.1)';
+                        ctx.fillRect(0, Math.min(epY, tpY), lineEndX, Math.abs(tpY - epY));
+                    }
+                } catch (e) {
+                    console.error('Error drawing EP-TP area:', e);
+                }
+            }
 
+            // EP-SL 영역 색칠
+            if (tradeData.entry !== null && tradeData.sl !== null) {
+                try {
+                    const epY = candlestickSeries.priceToCoordinate(tradeData.entry);
+                    const slY = candlestickSeries.priceToCoordinate(tradeData.sl);
+                    
+                    if (epY !== null && epY !== undefined && !isNaN(epY) &&
+                        slY !== null && slY !== undefined && !isNaN(slY) &&
+                        epY >= 0 && epY <= canvas.height &&
+                        slY >= 0 && slY <= canvas.height) {
+                        ctx.fillStyle = positionType === 'long' ? 'rgba(239, 83, 80, 0.1)' : 'rgba(38, 166, 154, 0.1)';
+                        ctx.fillRect(0, Math.min(epY, slY), lineEndX, Math.abs(slY - epY));
+                    }
+                } catch (e) {
+                    console.error('Error drawing EP-SL area:', e);
+                }
+            }
+
+            // 모든 라인의 y 좌표 계산
+            let epY = null, tpY = null, slY = null, lpY = null;
+            
             if (tradeData.entry !== null && tradeData.entry > 0) {
                 try {
                     epY = candlestickSeries.priceToCoordinate(tradeData.entry);
@@ -421,7 +485,7 @@
                     console.error('Error calculating EP coordinate:', e);
                 }
             }
-
+            
             if (tradeData.tp !== null && tradeData.tp > 0) {
                 try {
                     tpY = candlestickSeries.priceToCoordinate(tradeData.tp);
@@ -429,7 +493,7 @@
                     console.error('Error calculating TP coordinate:', e);
                 }
             }
-
+            
             if (tradeData.sl !== null && tradeData.sl > 0) {
                 try {
                     slY = candlestickSeries.priceToCoordinate(tradeData.sl);
@@ -437,48 +501,13 @@
                     console.error('Error calculating SL coordinate:', e);
                 }
             }
-
-            // positionType 명시적 확인 (window.positionType 우선 사용하여 최신 값 보장)
-            const currentPositionType = window.positionType || positionType;
-            const isLong = String(currentPositionType) === 'long';
-            const isShort = String(currentPositionType) === 'short';
-            console.log('drawOverlay - currentPositionType:', currentPositionType, 'isLong:', isLong, 'isShort:', isShort);
-            console.log('drawOverlay - window.positionType:', window.positionType, 'positionType:', positionType);
-            console.log('drawOverlay - tradeData values:', 'entry:', tradeData.entry, 'tp:', tradeData.tp, 'sl:', tradeData.sl);
-            console.log('drawOverlay - coordinate values:', 'epY:', epY, 'tpY:', tpY, 'slY:', slY);
-
-            // 색칠은 라인 그리기 전에 실행 (라인이 색칠 위에 표시되도록)
-            // 컴포지트 모드를 'source-over'로 설정하여 이전 그림을 완전히 덮어씀
-            ctx.globalCompositeOperation = 'source-over';
-
-            // **핵심**: 포지션 타입에 따라 색이 결정됨 (위치 무관!)
-            // Long: EP 위쪽 = 녹색(수익), EP 아래쪽 = 빨강(손실)
-            // Short: EP 위쪽 = 빨강(손실), EP 아래쪽 = 녹색(수익)
-
-            if (epY !== null && tpY !== null && slY !== null) {
-                console.log('Drawing areas with EP as boundary - epY:', epY, 'tpY:', tpY, 'slY:', slY);
-
-                const currentIsLong = String(window.positionType || positionType) === 'long';
-                console.log('Current position type:', currentIsLong ? 'LONG' : 'SHORT');
-
-                // 위쪽과 아래쪽의 y 좌표 계산
-                const upperY = Math.min(tpY, slY); // 위에 있는 것
-                const lowerY = Math.max(tpY, slY); // 아래에 있는 것
-
-                // 색은 오직 포지션 타입에만 의존!
-                const upperColor = currentIsLong ? 'rgba(38, 166, 154, 0.1)' : 'rgba(239, 83, 80, 0.1)'; // Long=녹색, Short=빨강
-                const lowerColor = currentIsLong ? 'rgba(239, 83, 80, 0.1)' : 'rgba(38, 166, 154, 0.1)'; // Long=빨강, Short=녹색
-
-                console.log('Drawing UPPER area from', upperY, 'to', epY, 'with color:', upperColor, '(positionType:', currentIsLong ? 'LONG' : 'SHORT', ')');
-                ctx.fillStyle = upperColor;
-                ctx.fillRect(0, upperY, canvas.width, epY - upperY);
-
-                console.log('Drawing LOWER area from', epY, 'to', lowerY, 'with color:', lowerColor, '(positionType:', currentIsLong ? 'LONG' : 'SHORT', ')');
-                ctx.fillStyle = lowerColor;
-                ctx.fillRect(0, epY, canvas.width, lowerY - epY);
-
-            } else {
-                console.log('Cannot draw areas - missing coordinates. epY:', epY, 'tpY:', tpY, 'slY:', slY);
+            
+            if (tradeData.liquidationPrice !== null && tradeData.liquidationPrice > 0) {
+                try {
+                    lpY = candlestickSeries.priceToCoordinate(tradeData.liquidationPrice);
+                } catch (e) {
+                    console.error('Error calculating LP coordinate:', e);
+                }
             }
 
             // 각 라인 쌍이 겹치는지 개별적으로 확인 (5픽셀 이내면 겹침으로 간주)
@@ -486,23 +515,23 @@
             const epTpOverlap = epY !== null && tpY !== null && Math.abs(epY - tpY) < threshold;
             const epSlOverlap = epY !== null && slY !== null && Math.abs(epY - slY) < threshold;
             const tpSlOverlap = tpY !== null && slY !== null && Math.abs(tpY - slY) < threshold;
-
+            
             // EP 라인과 버튼들
             if (epY !== null && !isNaN(epY)) {
                 if (epY >= -100 && epY <= canvas.height + 100) {
-                    // EP 라인 그리기
+                    // EP 라인 그리기 (가격 스케일 영역을 피함)
                     ctx.strokeStyle = '#2962FF';
-                    ctx.lineWidth = 3;
+                    ctx.lineWidth = 2;
                     ctx.setLineDash([5, 5]);
                     ctx.beginPath();
                     ctx.moveTo(0, epY);
-                    ctx.lineTo(canvas.width, epY);
+                    ctx.lineTo(lineEndX, epY);
                     ctx.stroke();
                     ctx.setLineDash([]);
                     
                     // EP 라인에 버튼 표시
-                    const buttonWidth = 40;
-                    const buttonHeight = 24;
+                    const buttonWidth = 32;
+                    const buttonHeight = 20;
                     const spacing = 5;
                     const startX = 10;
                     const buttonY = epY - buttonHeight / 2;
@@ -535,7 +564,29 @@
                     drawLineWithButton(slY, '#ef5350', 'SL');
                 }
             }
-
+            
+            // LP 라인과 LP 버튼 (청산 예산가 - 노란색 점선)
+            if (lpY !== null && !isNaN(lpY)) {
+                if (lpY >= -100 && lpY <= canvas.height + 100) {
+                    // LP는 항상 점선으로 표시
+                    ctx.strokeStyle = '#FFC107'; // 노란색
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.moveTo(0, lpY);
+                    ctx.lineTo(lineEndX, lpY);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    
+                    // LP 버튼 표시 (오른쪽에 배치)
+                    const buttonWidth = 32;
+                    const buttonHeight = 20;
+                    const endX = lineEndX - buttonWidth - 10; // 오른쪽에서 10px 여백
+                    const buttonY = lpY - buttonHeight / 2;
+                    drawButton(endX, buttonY, buttonWidth, buttonHeight, '#FFC107', 'LP');
+                }
+            }
+            
             console.log('=== drawOverlay completed ===');
         }
 
@@ -545,9 +596,13 @@
                 return;
             }
             
-            // 가로선 그리기
+            // 가격 스케일 영역 너비 추정
+            const priceScaleWidth = 80;
+            const lineEndX = canvas.width - priceScaleWidth;
+            
+            // 가로선 그리기 (가격 스케일 영역을 피함)
             ctx.strokeStyle = color;
-            ctx.lineWidth = 3;
+            ctx.lineWidth = 2;
             
             if (label === 'EP') {
                 // EP는 점선
@@ -559,13 +614,13 @@
             
             ctx.beginPath();
             ctx.moveTo(0, y);
-            ctx.lineTo(canvas.width, y);
+            ctx.lineTo(lineEndX, y);
             ctx.stroke();
             ctx.setLineDash([]);
 
             // 버튼을 라인 중앙에 위치
-            const buttonWidth = 40;
-            const buttonHeight = 24;
+            const buttonWidth = 32;
+            const buttonHeight = 20;
             const startX = 10;
             const buttonY = y - buttonHeight / 2; // 라인 중앙에 버튼 위치
 
@@ -576,8 +631,8 @@
         function drawButtonsOnEPLine(y) {
             if (!ctx || !canvas) return;
             
-            const buttonWidth = 40;
-            const buttonHeight = 24;
+            const buttonWidth = 32;
+            const buttonHeight = 20;
             const spacing = 5;
             const startX = 10;
             const buttonY = y - buttonHeight / 2;
@@ -598,13 +653,17 @@
                 return;
             }
             
-            // 가로선 (실선) - TP, SL 라인
+            // 가격 스케일 영역 너비 추정
+            const priceScaleWidth = 80;
+            const lineEndX = canvas.width - priceScaleWidth;
+            
+            // 가로선 (실선) - TP, SL 라인 (가격 스케일 영역을 피함)
             ctx.strokeStyle = color;
             ctx.lineWidth = 3;
             ctx.setLineDash([]);
             ctx.beginPath();
             ctx.moveTo(0, y);
-            ctx.lineTo(canvas.width, y);
+            ctx.lineTo(lineEndX, y);
             ctx.stroke();
         }
 
@@ -614,13 +673,17 @@
                 return;
             }
             
-            // 가로선 (점선)
+            // 가격 스케일 영역 너비 추정
+            const priceScaleWidth = 80;
+            const lineEndX = canvas.width - priceScaleWidth;
+            
+            // 가로선 (점선) (가격 스케일 영역을 피함)
             ctx.strokeStyle = color;
             ctx.lineWidth = 3;  // 더 두껍게
             ctx.setLineDash([5, 5]);
             ctx.beginPath();
             ctx.moveTo(0, y);
-            ctx.lineTo(canvas.width, y);
+            ctx.lineTo(lineEndX, y);
             ctx.stroke();
             ctx.setLineDash([]);
 
@@ -634,13 +697,33 @@
                 return;
             }
             
-            // 버튼 배경
+            const borderRadius = 5; // 모서리 둥글기 (버튼 크기에 맞게 조정)
+            
+            // 둥근 모서리 사각형 경로 생성
+            ctx.beginPath();
+            ctx.moveTo(x + borderRadius, y);
+            ctx.lineTo(x + width - borderRadius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + borderRadius);
+            ctx.lineTo(x + width, y + height - borderRadius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - borderRadius, y + height);
+            ctx.lineTo(x + borderRadius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - borderRadius);
+            ctx.lineTo(x, y + borderRadius);
+            ctx.quadraticCurveTo(x, y, x + borderRadius, y);
+            ctx.closePath();
+            
+            // 배경색 (차트 색상: #1A1F2E, RGB 26, 31, 46)
+            ctx.fillStyle = '#1A1F2E';
+            ctx.fill();
+            
+            // 테두리 (색상 적용)
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            
+            // 텍스트 (색상 적용)
             ctx.fillStyle = color;
-            ctx.fillRect(x, y, width, height);
-
-            // 텍스트
-            ctx.fillStyle = '#FFFFFF';
-            ctx.font = 'bold 12px sans-serif';
+            ctx.font = 'bold 10px sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(text, x + width / 2, y + height / 2);
@@ -840,91 +923,50 @@
 
             // 가격 제한 로직
             if (dragTarget === 'ep') {
-                console.log('EP drag - current positionType:', positionType, 'type:', typeof positionType);
-                console.log('EP drag - initial price:', price, 'TP:', tradeData.tp, 'SL:', tradeData.sl);
-
-                // EP 드래그 시 TP와 SL 사이에서만 이동 가능하도록 제한
-                const isLong = String(positionType) === 'long';
-                const isShort = String(positionType) === 'short';
-                console.log('EP drag - positionType check:', positionType, 'isLong:', isLong, 'isShort:', isShort);
-
-                if (isLong) {
-                    console.log('EP drag - long position logic');
-                    // 롱: TP >= EP >= SL (EP는 TP와 SL 사이)
-                    let minPrice = -Infinity;
-                    let maxPrice = Infinity;
-
+                // EP는 TP와 SL 사이에 있어야 함
+                if (positionType === 'long') {
+                    // 롱: SL < EP < TP
                     if (tradeData.sl !== null && tradeData.sl > 0) {
-                        minPrice = tradeData.sl; // EP는 SL보다 낮아질 수 없음
+                        price = Math.max(price, tradeData.sl);
                     }
                     if (tradeData.tp !== null && tradeData.tp > 0) {
-                        maxPrice = tradeData.tp; // EP는 TP보다 높아질 수 없음
+                        price = Math.min(price, tradeData.tp);
                     }
-
-                    price = Math.max(price, minPrice);
-                    price = Math.min(price, maxPrice);
-                    console.log('Long: EP limited between SL:', minPrice, 'and TP:', maxPrice, 'final price:', price);
-
-                } else if (isShort) {
-                    console.log('EP drag - short position logic');
-                    // 숏: SL >= EP >= TP (EP는 TP와 SL 사이)
-                    let minPrice = -Infinity;
-                    let maxPrice = Infinity;
-
-                    if (tradeData.tp !== null && tradeData.tp > 0) {
-                        minPrice = tradeData.tp; // EP는 TP보다 낮아질 수 없음
-                    }
-                    if (tradeData.sl !== null && tradeData.sl > 0) {
-                        maxPrice = tradeData.sl; // EP는 SL보다 높아질 수 없음
-                    }
-
-                    price = Math.max(price, minPrice);
-                    price = Math.min(price, maxPrice);
-                    console.log('Short: EP limited between TP:', minPrice, 'and SL:', maxPrice, 'final price:', price);
                 } else {
-                    console.log('EP drag - unknown position type:', positionType);
+                    // 숏: TP < EP < SL
+                    if (tradeData.tp !== null && tradeData.tp > 0) {
+                        price = Math.max(price, tradeData.tp);
+                    }
+                    if (tradeData.sl !== null && tradeData.sl > 0) {
+                        price = Math.min(price, tradeData.sl);
+                    }
                 }
                 tradeData.entry = price;
-                console.log('EP updated to:', price, 'positionType:', positionType);
             } else if (dragTarget === 'tp') {
-                const isLong = String(positionType) === 'long';
                 if (tradeData.entry === null || tradeData.entry === 0) {
                     // EP가 없으면 제한 없음
                     tradeData.tp = price;
                 } else {
-                    if (isLong) {
-                        // 롱: TP는 진입가보다 낮아질 수 없음, SL보다 낮아질 수 없음
+                    if (positionType === 'long') {
+                        // 롱: TP는 진입가보다 낮아질 수 없음
                         price = Math.max(price, tradeData.entry);
-                        if (tradeData.sl !== null && tradeData.sl > 0) {
-                            price = Math.max(price, tradeData.sl);
-                        }
                     } else {
-                        // 숏: TP는 진입가보다 높아질 수 없음, SL보다 높아질 수 없음
+                        // 숏: TP는 진입가보다 높아질 수 없음
                         price = Math.min(price, tradeData.entry);
-                        if (tradeData.sl !== null && tradeData.sl > 0) {
-                            price = Math.min(price, tradeData.sl);
-                        }
                     }
                     tradeData.tp = price;
                 }
             } else if (dragTarget === 'sl') {
-                const isLong = String(positionType) === 'long';
                 if (tradeData.entry === null || tradeData.entry === 0) {
                     // EP가 없으면 제한 없음
                     tradeData.sl = price;
                 } else {
-                    if (isLong) {
-                        // 롱: SL은 진입가보다 높아질 수 없음, TP보다 높아질 수 없음
+                    if (positionType === 'long') {
+                        // 롱: SL은 진입가보다 높아질 수 없음
                         price = Math.min(price, tradeData.entry);
-                        if (tradeData.tp !== null && tradeData.tp > 0) {
-                            price = Math.min(price, tradeData.tp);
-                        }
                     } else {
-                        // 숏: SL은 진입가보다 낮아질 수 없음, TP보다 낮아질 수 없음
+                        // 숏: SL은 진입가보다 낮아질 수 없음
                         price = Math.max(price, tradeData.entry);
-                        if (tradeData.tp !== null && tradeData.tp > 0) {
-                            price = Math.max(price, tradeData.tp);
-                        }
                     }
                     tradeData.sl = price;
                 }
@@ -1064,7 +1106,9 @@
 
                 if (candleData.length > 0) {
                     const lastCandle = candleData[candleData.length - 1];
+                    lastCandleTime = lastCandle.time;
                     updateCurrentPrice(lastCandle.close);
+                    updateTimeDisplay();
 
                     // EP만 자동 초기화 (TP, SL은 나중에 드래그로 설정)
                     if (tradeData.entry === null) {
@@ -1075,14 +1119,6 @@
                         console.log('Auto-initialized EP only from OHLC data:', {
                             entry: tradeData.entry
                         });
-
-                        // 데이터 로드 후 기본 포지션 타입 설정 (롱)
-                        setTimeout(() => {
-                            if (typeof adjustLinesForPositionType === 'function') {
-                                console.log('Setting initial position type to LONG after OHLC data load');
-                                adjustLinesForPositionType('long');
-                            }
-                        }, 300);
                     }
                     
                     // 오버레이 다시 그리기 (여러 번 시도)
@@ -1107,6 +1143,8 @@
 
             try {
                 const time = Math.floor(openTime / 1000);
+                lastCandleTime = time;
+                lastUpdateTime = new Date();
 
                 candlestickSeries.update({
                     time: time,
@@ -1125,10 +1163,87 @@
                 }
 
                 updateCurrentPrice(parseFloat(close));
+                updateTimeDisplay();
             } catch (error) {
                 console.error('Error updating kline:', error);
             }
         };
+        
+        // ========== 실시간 가격 업데이트 ==========
+        window.setCurrentPrice = function(price) {
+            if (!candlestickSeries) return;
+            
+            try {
+                lastUpdateTime = new Date();
+                
+                // 마지막 캔들 시간 가져오기
+                if (lastCandleTime === null) {
+                    const data = candlestickSeries.data();
+                    if (data && data.length > 0) {
+                        lastCandleTime = data[data.length - 1].time;
+                    }
+                }
+                
+                // 마지막 캔들 업데이트
+                if (lastCandleTime !== null) {
+                    const lastCandle = candlestickSeries.dataByIndex(candlestickSeries.data().length - 1);
+                    if (lastCandle) {
+                        candlestickSeries.update({
+                            time: lastCandleTime,
+                            open: lastCandle.open,
+                            high: Math.max(lastCandle.high, parseFloat(price)),
+                            low: Math.min(lastCandle.low, parseFloat(price)),
+                            close: parseFloat(price)
+                        });
+                    }
+                }
+                
+                updateCurrentPrice(parseFloat(price));
+                updateTimeDisplay();
+            } catch (error) {
+                console.error('Error setting current price:', error);
+            }
+        };
+        
+        // ========== 시간 표시 업데이트 ==========
+        function updateTimeDisplay() {
+            const timeDisplayContainer = document.getElementById('update-time-display');
+            const timeDisplay = document.getElementById('updateTime');
+            if (!timeDisplayContainer || !timeDisplay) {
+                console.warn('Time display elements not found');
+                return;
+            }
+            
+            let timeText = '';
+            if (lastUpdateTime) {
+                const hours = lastUpdateTime.getHours().toString().padStart(2, '0');
+                const minutes = lastUpdateTime.getMinutes().toString().padStart(2, '0');
+                const seconds = lastUpdateTime.getSeconds().toString().padStart(2, '0');
+                timeText = `${hours}:${minutes}:${seconds}`;
+            } else if (lastCandleTime) {
+                const date = new Date(lastCandleTime * 1000);
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                const seconds = date.getSeconds().toString().padStart(2, '0');
+                timeText = `${hours}:${minutes}:${seconds}`;
+            } else {
+                // 기본값으로 현재 시간 표시
+                const now = new Date();
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const seconds = now.getSeconds().toString().padStart(2, '0');
+                timeText = `${hours}:${minutes}:${seconds}`;
+            }
+            
+            if (timeText) {
+                timeDisplay.textContent = timeText;
+                timeDisplayContainer.style.display = 'block';
+                console.log('Time display updated:', timeText);
+            } else {
+                timeDisplay.textContent = '--:--:--';
+                timeDisplayContainer.style.display = 'block'; // 항상 표시
+            }
+        }
 
         // ========== Android 인터페이스 ==========
         // Android에서 호출하는 함수 (updateLines로도 호출 가능)
@@ -1213,164 +1328,38 @@
         };
 
         window.setPositionType = function(type) {
-            positionType = String(type).toLowerCase();
+            positionType = type;
             console.log('Position type set to:', positionType);
-            // 포지션 타입 변경 시 즉시 오버레이 다시 그리기
-            setTimeout(() => {
-                drawOverlay();
-                console.log('Redrew overlay after position type change');
-            }, 50);
         };
-
-        // ========== 포지션 타입 변경 시 라인 위치 자동 조정 ==========
-        window.adjustLinesForPositionType = function(newPositionType) {
-            console.log('=== ADJUSTING LINES FOR POSITION TYPE ===');
-            console.log('New position type:', newPositionType);
-            console.log('Current position type:', positionType);
-            console.log('Current trade data:', JSON.stringify(tradeData));
-
-            // 포지션 타입 설정 (명시적으로 문자열로 변환 및 전역 변수에도 저장)
-            const newType = String(newPositionType).toLowerCase();
-            positionType = newType;
-            window.positionType = newType; // 전역 window 객체에도 저장
-            console.log('Position type set to:', positionType);
-            console.log('Window position type:', window.positionType);
-            console.log('Position type is now:', positionType, 'type:', typeof positionType);
-            console.log('Position type comparison - isLong:', positionType === 'long', 'isShort:', positionType === 'short');
-
-            // 현재 캔버스 상태 저장 (디버깅용)
-            console.log('Canvas state - pointerEvents:', canvas ? canvas.style.pointerEvents : 'no canvas');
-
-            // 현재 값들 저장
-            let currentTp = tradeData.tp;
-            let currentSl = tradeData.sl;
-            let currentEntry = tradeData.entry;
-
-            console.log('Current values - TP:', currentTp, 'SL:', currentSl, 'Entry:', currentEntry);
-
-            // EP가 없으면 설정
-            if (currentEntry === null || currentEntry === 0) {
-                currentEntry = tradeData.currentPrice || 95902.92;
-                tradeData.entry = currentEntry;
-                console.log('Set entry to current price:', currentEntry);
-            }
-
-            // positionType 명시적 확인
-            const isLong = positionType === 'long';
-            const isShort = positionType === 'short';
-            console.log('adjustLinesForPositionType - isLong:', isLong, 'isShort:', isShort);
-
-            // TP와 SL 위치 조정 - EP를 기준으로 올바른 위치에 배치
-            console.log('Adjusting TP and SL positions for position type:', positionType);
-            console.log('Current values - Entry:', currentEntry, 'TP:', currentTp, 'SL:', currentSl);
-
-            if (currentTp !== null && currentSl !== null) {
-                // 둘 다 있으면 EP를 기준으로 올바른 위치에 재배치
-                const higherValue = Math.max(currentTp, currentSl);
-                const lowerValue = Math.min(currentTp, currentSl);
-
-                if (isLong) {
-                    // 롱: TP > EP > SL
-                    // EP보다 높은 값이 TP, EP보다 낮은 값이 SL
-                    tradeData.tp = higherValue;
-                    tradeData.sl = lowerValue;
-                    console.log('Long position - TP:', tradeData.tp, 'SL:', tradeData.sl, 'Entry:', currentEntry);
-                } else {
-                    // 숏: SL > EP > TP
-                    // EP보다 높은 값이 SL, EP보다 낮은 값이 TP
-                    tradeData.sl = higherValue;
-                    tradeData.tp = lowerValue;
-                    console.log('Short position - TP:', tradeData.tp, 'SL:', tradeData.sl, 'Entry:', currentEntry);
+        
+        window.setLiquidationPrice = function(price) {
+            console.log('setLiquidationPrice called with:', price);
+            if (price !== undefined && price !== null && price !== '') {
+                const lpValue = parseFloat(price);
+                if (!isNaN(lpValue) && lpValue > 0) {
+                    tradeData.liquidationPrice = lpValue;
+                    console.log('Liquidation price updated to:', lpValue);
+                    setTimeout(() => {
+                        drawOverlay();
+                    }, 50);
+                    setTimeout(() => {
+                        drawOverlay();
+                    }, 200);
+                } else if (price === '' || price === '0' || price === '0.00') {
+                    tradeData.liquidationPrice = null;
+                    console.log('Liquidation price cleared');
+                    setTimeout(() => {
+                        drawOverlay();
+                    }, 50);
                 }
-            } else if (currentTp !== null) {
-                // TP만 있으면 SL을 EP 기준으로 설정
-                if (isLong) {
-                    // 롱: TP > EP > SL
-                    if (currentTp > currentEntry) {
-                        tradeData.tp = currentTp;
-                        tradeData.sl = currentEntry * 0.99;
-                    } else {
-                        // TP가 EP보다 낮으면 EP 기준으로 재설정
-                        tradeData.tp = currentEntry * 1.01;
-                        tradeData.sl = currentEntry * 0.99;
-                    }
-                } else {
-                    // 숏: SL > EP > TP
-                    if (currentTp < currentEntry) {
-                        tradeData.tp = currentTp;
-                        tradeData.sl = currentEntry * 1.01;
-                    } else {
-                        // TP가 EP보다 높으면 EP 기준으로 재설정
-                        tradeData.tp = currentEntry * 0.99;
-                        tradeData.sl = currentEntry * 1.01;
-                    }
-                }
-                console.log('Added SL based on TP - TP:', tradeData.tp, 'SL:', tradeData.sl);
-            } else if (currentSl !== null) {
-                // SL만 있으면 TP를 EP 기준으로 설정
-                if (isLong) {
-                    // 롱: TP > EP > SL
-                    if (currentSl < currentEntry) {
-                        tradeData.sl = currentSl;
-                        tradeData.tp = currentEntry * 1.01;
-                    } else {
-                        // SL이 EP보다 높으면 EP 기준으로 재설정
-                        tradeData.sl = currentEntry * 0.99;
-                        tradeData.tp = currentEntry * 1.01;
-                    }
-                } else {
-                    // 숏: SL > EP > TP
-                    if (currentSl > currentEntry) {
-                        tradeData.sl = currentSl;
-                        tradeData.tp = currentEntry * 0.99;
-                    } else {
-                        // SL이 EP보다 낮으면 EP 기준으로 재설정
-                        tradeData.sl = currentEntry * 1.01;
-                        tradeData.tp = currentEntry * 0.99;
-                    }
-                }
-                console.log('Added TP based on SL - TP:', tradeData.tp, 'SL:', tradeData.sl);
-            } else {
-                // 둘 다 없으면 기본값 설정
-                tradeData.tp = isLong ? currentEntry * 1.01 : currentEntry * 0.99;
-                tradeData.sl = isLong ? currentEntry * 0.99 : currentEntry * 1.01;
-                console.log('Set default TP/SL values - TP:', tradeData.tp, 'SL:', tradeData.sl);
             }
-
-            console.log('Final trade data:', JSON.stringify(tradeData));
-            console.log('Final positionType:', positionType, 'type:', typeof positionType);
-            console.log('Final window.positionType:', window.positionType);
-
-            // 캔버스 강제 클리어 및 오버레이 다시 그리기
-            if (canvas && ctx) {
-                console.log('Clearing canvas before redraw');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-            }
-
-            // 즉시 오버레이 그리기 (여러 번 시도, 더 긴 간격으로)
-            console.log('Scheduling overlay redraws...');
-            drawOverlay();
-            setTimeout(() => {
-                console.log('Redrawing overlay (50ms delay)...');
-                drawOverlay();
-            }, 50);
-            setTimeout(() => {
-                console.log('Redrawing overlay (100ms delay)...');
-                drawOverlay();
-            }, 100);
-            setTimeout(() => {
-                console.log('Redrawing overlay (200ms delay)...');
-                drawOverlay();
-            }, 200);
-            setTimeout(() => {
-                console.log('Redrawing overlay (300ms delay)...');
-                drawOverlay();
-            }, 300);
-
-            // Android에 업데이트된 가격들 전달
-            updateAndroidInputs();
-
-            console.log('=== LINE ADJUSTMENT COMPLETED ===');
+        };
+        
+        // ========== 타임프레임 설정 ==========
+        let currentTimeframe = '1h';
+        window.setTimeframe = function(timeframe) {
+            currentTimeframe = timeframe;
+            console.log('Timeframe set to:', currentTimeframe);
         };
 
         // ========== 초기화 ==========
@@ -1398,6 +1387,9 @@
 
                 chartReady = true;
                 console.log('Chart ready');
+                
+                // 초기 시간 표시
+                updateTimeDisplay();
 
                 if (pendingKlines) {
                     console.log('Processing pending klines');

@@ -38,7 +38,7 @@ import java.util.Map;
  * Main Activity
  * 제안서의 activity_main_dashboard.xml 레이아웃 사용
  */
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
     
     private DashboardViewModel viewModel;
     private MarketDataRepository marketDataRepository;
@@ -94,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
         setupRecyclerView();
         setupListeners();
         setupObservers();
+        setupWindowInsets();
         
         // 데이터 새로고침
         viewModel.refresh();

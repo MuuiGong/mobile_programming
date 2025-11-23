@@ -4,7 +4,7 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
+import com.example.rsquare.ui.BaseActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -17,7 +17,7 @@ import com.example.rsquare.util.NumberFormatter;
 /**
  * 포트폴리오 관리 Activity
  */
-public class PortfolioActivity extends AppCompatActivity {
+public class PortfolioActivity extends BaseActivity {
     
     private TradingRepository tradingRepository;
     

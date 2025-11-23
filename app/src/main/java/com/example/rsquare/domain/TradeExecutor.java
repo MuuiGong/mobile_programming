@@ -39,11 +39,14 @@ public class TradeExecutor {
      * @param slPrice SL 가격
      * @param isLong 롱 포지션 여부
      * @param leverage 레버리지 (선물 거래만)
+     * @param riskAmount 거래 금액 (null이면 UserSettings 기본값 사용)
+     * @param marginMode 마진 모드 ("ISOLATED" or "CROSS", null이면 UserSettings 기본값 사용)
      * @param listener 실행 결과 리스너
      */
     public void executeTrade(long userId, String symbol, double entryPrice, 
                              double tpPrice, double slPrice, boolean isLong, 
-                             Integer leverage, OnTradeExecutedListener listener) {
+                             Integer leverage, Double riskAmount, String marginMode,
+                             OnTradeExecutedListener listener) {
         
         // 사용자 및 설정 조회
         com.example.rsquare.data.local.entity.User user = userRepository.getUserSync(userId);
@@ -73,15 +76,29 @@ public class TradeExecutor {
         final long finalUserId = userId;
         final double finalEntryPrice = entryPrice;
         
-        // 위험 자금 계산
-        double riskAmount = TradeCalculator.calculateRiskAmount(settings, user.getBalance());
+        // 위험 자금 계산 (입력값이 없으면 UserSettings 기본값 사용)
+        double finalRiskAmount;
+        if (riskAmount != null && riskAmount > 0) {
+            finalRiskAmount = riskAmount;
+        } else {
+            finalRiskAmount = TradeCalculator.calculateRiskAmount(settings, user.getBalance());
+        }
+        
+        // 마진 모드 결정 (입력값이 없으면 UserSettings 기본값 사용)
+        final String finalMarginMode;
+        if (marginMode != null && !marginMode.isEmpty()) {
+            finalMarginMode = marginMode;
+        } else {
+            finalMarginMode = settings.getDefaultMarginMode() != null ? 
+                settings.getDefaultMarginMode() : "CROSS";
+        }
         
         // 거래 검증
         int activePositionsCount = tradingRepository.getActivePositionsSync(userId).size();
         double dailyLoss = calculateDailyLoss(userId);
         
         TradeValidator.ValidationResult validation = TradeValidator.validateTrade(
-            entryPrice, tpPrice, slPrice, riskAmount, actualLeverage, isLong,
+            entryPrice, tpPrice, slPrice, finalRiskAmount, actualLeverage, isLong,
             settings, activePositionsCount, user.getBalance(), dailyLoss
         );
         
@@ -100,7 +117,7 @@ public class TradeExecutor {
         
         // 거래 크기 계산
         final TradeCalculator.TradeCalculationResult calculation = TradeCalculator.calculateTrade(
-            entryPrice, tpPrice, slPrice, riskAmount, finalTradeType, actualLeverage, isLong
+            entryPrice, tpPrice, slPrice, finalRiskAmount, finalTradeType, actualLeverage, isLong
         );
         
         // 포지션 생성
@@ -114,9 +131,10 @@ public class TradeExecutor {
         position.setLong(isLong);
         position.setTradeType(finalTradeType);
         position.setLeverage(actualLeverage);
-        position.setRiskAmount(riskAmount);
+        position.setRiskAmount(finalRiskAmount);
         position.setTimeframe(settings.getDefaultTimeframe());
         position.setRrRatio(calculation.getRrRatio());
+        position.setMarginMode(finalMarginMode);
         
         // 포지션 열기
         tradingRepository.openPosition(position, new TradingRepository.OnPositionOpenedListener() {

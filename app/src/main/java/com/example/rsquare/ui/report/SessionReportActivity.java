@@ -5,7 +5,7 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
+import com.example.rsquare.ui.BaseActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -20,7 +20,7 @@ import java.util.Locale;
 /**
  * 세션 리포트 Activity
  */
-public class SessionReportActivity extends AppCompatActivity {
+public class SessionReportActivity extends BaseActivity {
     
     private TextView sessionDate;
     private TextView totalPnlReport;

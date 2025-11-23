@@ -6,7 +6,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
+import com.example.rsquare.ui.BaseActivity;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -22,7 +22,7 @@ import java.util.List;
 /**
  * 자산·모드 선택 화면 Activity
  */
-public class AssetSelectionActivity extends AppCompatActivity {
+public class AssetSelectionActivity extends BaseActivity {
     
     private androidx.cardview.widget.CardView cardFutures;
     private androidx.cardview.widget.CardView cardStock;

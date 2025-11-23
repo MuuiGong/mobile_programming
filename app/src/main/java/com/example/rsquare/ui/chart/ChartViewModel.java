@@ -55,6 +55,9 @@ public class ChartViewModel extends AndroidViewModel {
     // Binance OHLC 데이터 (직접 사용)
     private final MutableLiveData<List<List<Object>>> binanceKlines = new MutableLiveData<>();
     
+    // 시간 프레임 (기본값: 1h)
+    private final MutableLiveData<String> timeframe = new MutableLiveData<>("1h");
+    
     // 트레이딩 입력
     private final MutableLiveData<Double> entryPrice = new MutableLiveData<>();
     private final MutableLiveData<Double> takeProfit = new MutableLiveData<>();
@@ -146,9 +149,11 @@ public class ChartViewModel extends AndroidViewModel {
                     if (selectedId != null) {
                         List<String> coinIds = new java.util.ArrayList<>();
                         coinIds.add(selectedId);
-                        android.util.Log.d("ChartViewModel", "Starting WebSocket for selected coin only: " + coinIds);
-                        // 1분 캔들스틱 구독
-                        marketDataRepository.startWebSocket(coinIds, "1m");
+                        String currentTimeframe = timeframe.getValue();
+                        if (currentTimeframe == null) currentTimeframe = "1h";
+                        android.util.Log.d("ChartViewModel", "Starting WebSocket for selected coin only: " + coinIds + " with timeframe: " + currentTimeframe);
+                        // 현재 시간 프레임으로 캔들스틱 구독
+                        marketDataRepository.startWebSocket(coinIds, currentTimeframe);
                     }
                 }
                 
@@ -157,6 +162,18 @@ public class ChartViewModel extends AndroidViewModel {
                     android.util.Log.e("ChartViewModel", "Error loading market data: " + error);
                     loading.postValue(false);
                     errorMessage.postValue(error);
+                    
+                    // 네트워크 오류가 발생해도 WebSocket 연결은 시도 (WebSocket은 별도 연결)
+                    String selectedId = selectedCoinId.getValue();
+                    if (selectedId != null) {
+                        List<String> coinIds = new java.util.ArrayList<>();
+                        coinIds.add(selectedId);
+                        String currentTimeframe = timeframe.getValue();
+                        if (currentTimeframe == null) currentTimeframe = "1h";
+                        android.util.Log.d("ChartViewModel", "Starting WebSocket despite API error for: " + coinIds + " with timeframe: " + currentTimeframe);
+                        // 현재 시간 프레임으로 캔들스틱 구독
+                        marketDataRepository.startWebSocket(coinIds, currentTimeframe);
+                    }
                 }
             }
         );
@@ -166,10 +183,23 @@ public class ChartViewModel extends AndroidViewModel {
      * 차트 데이터 로드 (Binance OHLC 데이터 직접 사용)
      */
     public void loadChartData(String coinId, int days) {
+        loadChartData(coinId, days, null);
+    }
+    
+    /**
+     * 차트 데이터 로드 (Binance OHLC 데이터 직접 사용, 시간 프레임 지정 가능)
+     */
+    public void loadChartData(String coinId, int days, String interval) {
         loading.setValue(true);
         
+        // 시간 프레임이 지정되지 않으면 기본값 사용
+        if (interval == null) {
+            interval = timeframe.getValue();
+            if (interval == null) interval = "1h";
+        }
+        
         // Binance klines 데이터를 직접 가져와서 OHLC 형식으로 전달
-        marketDataRepository.getBinanceKlines(coinId, days,
+        marketDataRepository.getBinanceKlines(coinId, interval, days,
             new MarketDataRepository.OnBinanceKlinesLoadedListener() {
                 @Override
                 public void onBinanceKlinesLoaded(List<List<Object>> klines) {
@@ -292,8 +322,38 @@ public class ChartViewModel extends AndroidViewModel {
         // 웹소켓 재구독 (새로운 코인만 구독)
         List<String> coinIds = new java.util.ArrayList<>();
         coinIds.add(coinId);
-        android.util.Log.d("ChartViewModel", "Reconnecting WebSocket for new coin: " + coinId);
-        marketDataRepository.startWebSocket(coinIds, "1m");
+        String currentTimeframe = timeframe.getValue();
+        if (currentTimeframe == null) currentTimeframe = "1h";
+        android.util.Log.d("ChartViewModel", "Reconnecting WebSocket for new coin: " + coinId + " with timeframe: " + currentTimeframe);
+        marketDataRepository.startWebSocket(coinIds, currentTimeframe);
+    }
+    
+    /**
+     * 시간 프레임 변경
+     */
+    public void setTimeframe(String newTimeframe) {
+        String oldTimeframe = timeframe.getValue();
+        if (oldTimeframe != null && oldTimeframe.equals(newTimeframe)) {
+            // 동일한 시간 프레임이면 변경하지 않음
+            return;
+        }
+        
+        android.util.Log.d("ChartViewModel", "Timeframe changed from " + oldTimeframe + " to " + newTimeframe);
+        timeframe.setValue(newTimeframe);
+        
+        // 웹소켓 재구독 (새로운 시간 프레임으로)
+        String selectedId = selectedCoinId.getValue();
+        if (selectedId != null) {
+            List<String> coinIds = new java.util.ArrayList<>();
+            coinIds.add(selectedId);
+            android.util.Log.d("ChartViewModel", "Reconnecting WebSocket with new timeframe: " + newTimeframe);
+            marketDataRepository.startWebSocket(coinIds, newTimeframe);
+        }
+        
+        // 차트 데이터 다시 로드 (새로운 시간 프레임으로)
+        if (selectedId != null) {
+            loadChartData(selectedId, 7, newTimeframe);
+        }
     }
     
     /**
@@ -385,6 +445,10 @@ public class ChartViewModel extends AndroidViewModel {
     
     public MutableLiveData<List<List<Object>>> getBinanceKlines() {
         return binanceKlines;
+    }
+    
+    public MutableLiveData<String> getTimeframe() {
+        return timeframe;
     }
 }
 

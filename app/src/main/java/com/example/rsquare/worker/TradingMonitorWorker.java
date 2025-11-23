@@ -124,8 +124,17 @@ public class TradingMonitorWorker extends Worker {
         
         // 3. 마진콜 및 청산 체크 (선물 거래만)
         if ("FUTURES".equals(position.getTradeType()) && position.getLeverage() > 1) {
-            // 사용 마진 계산 (증거금)
-            double usedMargin = MarginCalculator.calculateUsedMargin(
+            String marginMode = position.getMarginMode();
+            if (marginMode == null || marginMode.isEmpty()) {
+                marginMode = "CROSS"; // 기본값
+            }
+            
+            double liquidationPrice;
+            double marginRatio;
+            
+            if ("ISOLATED".equals(marginMode)) {
+                // Isolated 모드: 포지션별 마진만 고려
+                double isolatedMargin = MarginCalculator.calculateIsolatedMargin(
                 position.getEntryPrice(),
                 position.getQuantity(),
                 position.getLeverage()
@@ -134,31 +143,64 @@ public class TradingMonitorWorker extends Worker {
             // 미실현 손익 계산
             double unrealizedPnL = position.calculateUnrealizedPnL(currentPrice);
             
-            // 총 마진 = 사용자의 잔고 (증거금으로 사용된 부분)
-            // 가용 마진 = 총 마진 + 미실현 손익 - 사용 마진
-            double totalMargin = totalBalance; // 사용자의 총 잔고
-            double availableMargin = MarginCalculator.calculateAvailableMargin(
-                totalMargin,
-                usedMargin,
-                unrealizedPnL
-            );
+                // 가용 마진 = 포지션별 마진 + 미실현 손익
+                double availableMargin = isolatedMargin + unrealizedPnL;
             
             // 마진 비율 계산
-            double marginRatio = MarginCalculator.calculateMarginRatio(availableMargin, usedMargin);
+                marginRatio = MarginCalculator.calculateMarginRatio(availableMargin, isolatedMargin);
             
-            // 청산 가격 계산
-            double liquidationPrice = MarginCalculator.calculateLiquidationPrice(
+                // 청산 가격 계산 (Isolated 모드)
+                liquidationPrice = MarginCalculator.calculateIsolatedLiquidationPrice(
                 position.getEntryPrice(),
                 position.getQuantity(),
                 position.getLeverage(),
-                usedMargin, // 증거금
+                    isolatedMargin,
                 position.isLong()
             );
+            } else {
+                // Cross 모드: 모든 포지션의 마진과 손익 고려
+                List<Position> allPositions = tradingRepository.getActivePositionsSync(position.getUserId());
+                
+                // 현재 포지션의 사용 마진
+                double positionMargin = MarginCalculator.calculateUsedMargin(
+                    position.getEntryPrice(),
+                    position.getQuantity(),
+                    position.getLeverage()
+                );
+                
+                // 다른 포지션들의 사용 마진 합산
+                double otherPositionsMargin = 0.0;
+                double otherPositionsPnL = 0.0;
+                for (Position pos : allPositions) {
+                    if (pos.getId() != position.getId() && !pos.isClosed() && "FUTURES".equals(pos.getTradeType())) {
+                        otherPositionsMargin += MarginCalculator.calculateUsedMargin(
+                            pos.getEntryPrice(), pos.getQuantity(), pos.getLeverage()
+                        );
+                        otherPositionsPnL += pos.calculateUnrealizedPnL(currentPrice);
+                    }
+                }
+                
+                // 현재 포지션의 미실현 손익
+                double currentPnL = position.calculateUnrealizedPnL(currentPrice);
+                
+                // 가용 마진 = 총 잔고 + 다른 포지션들의 미실현 손익 - 다른 포지션들의 마진
+                double availableMargin = totalBalance + otherPositionsPnL - otherPositionsMargin;
+                
+                // 마진 비율 계산 (현재 포지션 기준)
+                marginRatio = MarginCalculator.calculateMarginRatio(
+                    availableMargin + currentPnL, positionMargin
+                );
+                
+                // 청산 가격 계산 (Cross 모드)
+                liquidationPrice = MarginCalculator.calculateCrossLiquidationPrice(
+                    position, allPositions, totalBalance, currentPrice
+                );
+            }
             
             // 자동 청산 체크 (마진 비율 0% 이하)
             if (MarginCalculator.shouldLiquidate(marginRatio)) {
                 Log.w(TAG, "Liquidation triggered! Position " + position.getId() + 
-                    ", Margin ratio: " + marginRatio + "%");
+                    ", Margin ratio: " + marginRatio + "%, Mode: " + marginMode);
                 closePosition(position, currentPrice, TradeHistory.TradeType.CLOSE_SL, "MARGIN_CALL_LIQUIDATION");
                 notificationHelper.notifyLiquidation(position, liquidationPrice);
                 return;
@@ -167,7 +209,7 @@ public class TradingMonitorWorker extends Worker {
             // 마진콜 경고 체크 (마진 비율 50% 이하)
             if (MarginCalculator.isMarginCall(marginRatio)) {
                 Log.w(TAG, "Margin call warning! Position " + position.getId() + 
-                    ", Margin ratio: " + marginRatio + "%");
+                    ", Margin ratio: " + marginRatio + "%, Mode: " + marginMode);
                 notificationHelper.notifyMarginWarning(position, marginRatio);
             }
             
@@ -175,7 +217,7 @@ public class TradingMonitorWorker extends Worker {
             MarginCalculator.MarginStatus status = MarginCalculator.getMarginStatus(marginRatio);
             if (status == MarginCalculator.MarginStatus.CRITICAL) {
                 Log.w(TAG, "Critical margin status! Position " + position.getId() + 
-                    ", Margin ratio: " + marginRatio + "%");
+                    ", Margin ratio: " + marginRatio + "%, Mode: " + marginMode);
                 notificationHelper.notifyMarginCritical(position, marginRatio, liquidationPrice);
             }
         }

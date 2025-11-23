@@ -6,7 +6,7 @@ import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
+import com.example.rsquare.ui.BaseActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.example.rsquare.R;
@@ -23,7 +23,7 @@ import java.util.Locale;
  * 청산 경고 Activity
  * 마진 부족 시 표시되는 경고 화면
  */
-public class LiquidationWarningActivity extends AppCompatActivity {
+public class LiquidationWarningActivity extends BaseActivity {
     
     public static final String EXTRA_POSITION_ID = "position_id";
     

@@ -7,7 +7,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
+import com.example.rsquare.ui.BaseActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -20,7 +20,7 @@ import java.util.List;
 /**
  * AI 코치 Activity
  */
-public class AICoachActivity extends AppCompatActivity {
+public class AICoachActivity extends BaseActivity {
     
     private RecyclerView chatRecycler;
     private EditText chatInput;

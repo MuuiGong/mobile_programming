@@ -15,17 +15,20 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.rsquare.R;
+import com.example.rsquare.domain.MarginCalculator;
 import com.example.rsquare.domain.RiskCalculator;
 import com.example.rsquare.domain.TradeCalculator;
 import com.example.rsquare.domain.TradeExecutor;
+import com.example.rsquare.ui.BaseActivity;
 import com.example.rsquare.ui.chart.ChartWebViewInterface;
 import com.example.rsquare.ui.chart.ChartViewModel;
 import com.example.rsquare.ui.trade.TradeViewModel;
+import com.google.android.material.button.MaterialButton;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -35,7 +38,7 @@ import java.util.Locale;
  * 거래 실행 Activity
  * 제안서의 activity_trading.xml 레이아웃 사용
  */
-public class TradingActivity extends AppCompatActivity {
+public class TradingActivity extends BaseActivity {
     
     private TradeViewModel viewModel;
     private ChartViewModel chartViewModel;
@@ -49,19 +52,28 @@ public class TradingActivity extends AppCompatActivity {
     private EditText entryPriceInput;
     private EditText tpPriceInput;
     private EditText slPriceInput;
+    private EditText riskAmountInput;
+    private Button btnMarginIsolated;
+    private Button btnMarginCross;
     private Spinner leverageSpinner;
     private Button btnLong;
     private Button btnShort;
     private TextView rrRatioText;
     private TextView riskScoreTrading;
+    private TextView liquidationPriceText;
     private Button btnEnterTrade;
+    
+    // 타임프레임 버튼들
+    private MaterialButton btnTime1m, btnTime5m, btnTime15m, btnTime30m, btnTime1h, btnTime4h, btnTime1d;
     
     // Data
     private String currentSymbol = "BTCUSDT";
-    private String currentTimeframe = "1H";
+    private String currentTimeframe = "1h";
     private int leverage = 5;
     private boolean isLong = true;
+    private String marginMode = "CROSS"; // 기본값: Cross 마진 모드
     private double currentPrice = 0.0;
+    private double defaultRiskAmount = 0.0; // UserSettings 기본값
     private boolean isChartReady = false;
     private java.util.List<java.util.List<Object>> pendingKlines = null;
     
@@ -99,15 +111,31 @@ public class TradingActivity extends AppCompatActivity {
         entryPriceInput = findViewById(R.id.entry_price_input);
         tpPriceInput = findViewById(R.id.tp_price_input);
         slPriceInput = findViewById(R.id.sl_price_input);
+        riskAmountInput = findViewById(R.id.risk_amount_input);
+        btnMarginIsolated = findViewById(R.id.btn_margin_isolated);
+        btnMarginCross = findViewById(R.id.btn_margin_cross);
         leverageSpinner = findViewById(R.id.leverage_spinner);
         btnLong = findViewById(R.id.btn_long);
         btnShort = findViewById(R.id.btn_short);
         rrRatioText = findViewById(R.id.rr_ratio_text);
         riskScoreTrading = findViewById(R.id.risk_score_trading);
+        liquidationPriceText = findViewById(R.id.liquidation_price_text);
         btnEnterTrade = findViewById(R.id.btn_enter_trade);
         
+        // 타임프레임 버튼 초기화
+        btnTime1m = findViewById(R.id.btn_time_1m);
+        btnTime5m = findViewById(R.id.btn_time_5m);
+        btnTime15m = findViewById(R.id.btn_time_15m);
+        btnTime30m = findViewById(R.id.btn_time_30m);
+        btnTime1h = findViewById(R.id.btn_time_1h);
+        btnTime4h = findViewById(R.id.btn_time_4h);
+        btnTime1d = findViewById(R.id.btn_time_1d);
+        
+        // 기본 타임프레임 선택 (1h)
+        setTimeframeButtonActive(btnTime1h);
+        
         // 심볼 및 타임프레임 설정
-        symbolText.setText(currentSymbol + " | " + currentTimeframe);
+        symbolText.setText(currentSymbol + " | " + currentTimeframe.toUpperCase());
         timeframeText.setText(leverage + "x 레버리지");
         
         // 레버리지 Spinner 설정
@@ -121,6 +149,29 @@ public class TradingActivity extends AppCompatActivity {
         
         // 롱/숏 버튼 초기 상태 설정
         updatePositionButtons();
+    }
+    
+    /**
+     * 타임프레임 버튼 활성화 상태 설정
+     */
+    private void setTimeframeButtonActive(MaterialButton activeButton) {
+        int inactiveBgColor = ContextCompat.getColor(this, android.R.color.transparent);
+        int inactiveTextColor = ContextCompat.getColor(this, R.color.tds_gray_500);
+        int activeBgColor = ContextCompat.getColor(this, R.color.tds_blue_500);
+        int activeTextColor = ContextCompat.getColor(this, android.R.color.white);
+        
+        MaterialButton[] buttons = {btnTime1m, btnTime5m, btnTime15m, btnTime30m, btnTime1h, btnTime4h, btnTime1d};
+        for (MaterialButton btn : buttons) {
+            if (btn != null) {
+                btn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(inactiveBgColor));
+                btn.setTextColor(inactiveTextColor);
+            }
+        }
+        
+        if (activeButton != null) {
+            activeButton.setBackgroundTintList(android.content.res.ColorStateList.valueOf(activeBgColor));
+            activeButton.setTextColor(activeTextColor);
+        }
     }
     
     /**
@@ -181,7 +232,11 @@ public class TradingActivity extends AppCompatActivity {
                             String currentText = entryPriceInput.getText() != null ? 
                                 entryPriceInput.getText().toString() : "";
                             if (currentText == null || currentText.trim().isEmpty()) {
-                                entryPriceInput.setText(formatPrice(price));
+                                String priceStr = formatPrice(price);
+                                entryPriceInput.setText(priceStr);
+                                // TP와 SL도 EP와 같은 값으로 초기화 (겹쳐진 상태)
+                                tpPriceInput.setText(priceStr);
+                                slPriceInput.setText(priceStr);
                             }
                             updateRiskMetrics();
                         });
@@ -290,6 +345,27 @@ public class TradingActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {}
         });
         
+        // Risk Amount 변경
+        riskAmountInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                updateRiskMetrics();
+            }
+            
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+        
+        // 마진 모드 버튼 리스너
+        btnMarginIsolated.setOnClickListener(v -> setMarginMode("ISOLATED", btnMarginIsolated));
+        btnMarginCross.setOnClickListener(v -> setMarginMode("CROSS", btnMarginCross));
+        
+        // 기본 마진 모드 설정 (Cross)
+        setMarginMode("CROSS", btnMarginCross);
+        
         // 레버리지 변경 리스너
         leverageSpinner.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
             @Override
@@ -336,6 +412,51 @@ public class TradingActivity extends AppCompatActivity {
         
         // 거래 진입 버튼
         btnEnterTrade.setOnClickListener(v -> executeTrade());
+        
+        // 타임프레임 버튼 리스너
+        if (btnTime1m != null) {
+            btnTime1m.setOnClickListener(v -> setTimeframe("1m", btnTime1m));
+        }
+        if (btnTime5m != null) {
+            btnTime5m.setOnClickListener(v -> setTimeframe("5m", btnTime5m));
+        }
+        if (btnTime15m != null) {
+            btnTime15m.setOnClickListener(v -> setTimeframe("15m", btnTime15m));
+        }
+        if (btnTime30m != null) {
+            btnTime30m.setOnClickListener(v -> setTimeframe("30m", btnTime30m));
+        }
+        if (btnTime1h != null) {
+            btnTime1h.setOnClickListener(v -> setTimeframe("1h", btnTime1h));
+        }
+        if (btnTime4h != null) {
+            btnTime4h.setOnClickListener(v -> setTimeframe("4h", btnTime4h));
+        }
+        if (btnTime1d != null) {
+            btnTime1d.setOnClickListener(v -> setTimeframe("1d", btnTime1d));
+        }
+    }
+    
+    /**
+     * 타임프레임 변경
+     */
+    private void setTimeframe(String timeframe, MaterialButton button) {
+        currentTimeframe = timeframe;
+        setTimeframeButtonActive(button);
+        
+        // 심볼 텍스트 업데이트
+        symbolText.setText(currentSymbol + " | " + timeframe.toUpperCase());
+        
+        // ViewModel에 타임프레임 변경 알림
+        chartViewModel.setTimeframe(timeframe);
+        
+        // JavaScript에 타임프레임 변경 알림
+        String jsCode = "if (typeof setTimeframe === 'function') { setTimeframe('" + timeframe + "'); }";
+        tradingChart.post(() -> {
+            if (tradingChart != null) {
+                tradingChart.evaluateJavascript(jsCode, null);
+            }
+        });
     }
     
     /**
@@ -344,11 +465,38 @@ public class TradingActivity extends AppCompatActivity {
     private void updatePositionButtons() {
         if (isLong) {
             btnLong.setBackgroundResource(R.drawable.btn_primary);
+            btnLong.setTextColor(getColor(R.color.white));
             btnShort.setBackgroundResource(R.drawable.btn_secondary);
+            btnShort.setTextColor(getColor(R.color.tds_text_secondary)); // 밝은 회색으로 변경
         } else {
             btnLong.setBackgroundResource(R.drawable.btn_secondary);
+            btnLong.setTextColor(getColor(R.color.tds_text_secondary)); // 밝은 회색으로 변경
             btnShort.setBackgroundResource(R.drawable.btn_primary);
+            btnShort.setTextColor(getColor(R.color.white));
         }
+    }
+    
+    /**
+     * 마진 모드 설정
+     */
+    private void setMarginMode(String mode, Button activeButton) {
+        marginMode = mode;
+        
+        // 버튼 상태 업데이트
+        if (mode.equals("ISOLATED")) {
+            btnMarginIsolated.setBackgroundResource(R.drawable.btn_primary);
+            btnMarginIsolated.setTextColor(getColor(R.color.white));
+            btnMarginCross.setBackgroundResource(R.drawable.btn_secondary);
+            btnMarginCross.setTextColor(getColor(R.color.tds_text_secondary)); // 밝은 회색으로 변경
+        } else {
+            btnMarginIsolated.setBackgroundResource(R.drawable.btn_secondary);
+            btnMarginIsolated.setTextColor(getColor(R.color.tds_text_secondary)); // 밝은 회색으로 변경
+            btnMarginCross.setBackgroundResource(R.drawable.btn_primary);
+            btnMarginCross.setTextColor(getColor(R.color.white));
+        }
+        
+        // 청산 예산가 재계산
+        updateRiskMetrics();
     }
 
     /**
@@ -407,11 +555,15 @@ public class TradingActivity extends AppCompatActivity {
                     }
                 });
                 
-                // 진입가가 비어있으면 현재 가격으로 설정
+                // 진입가가 비어있으면 현재 가격으로 설정하고, TP와 SL도 같은 값으로 설정
                 String currentText = entryPriceInput.getText() != null ? 
                     entryPriceInput.getText().toString().trim() : "";
                 if (currentText.isEmpty()) {
-                    entryPriceInput.setText(formatPrice(price));
+                    String priceStr = formatPrice(price);
+                    entryPriceInput.setText(priceStr);
+                    // TP와 SL도 EP와 같은 값으로 초기화 (겹쳐진 상태)
+                    tpPriceInput.setText(priceStr);
+                    slPriceInput.setText(priceStr);
                 }
                 updateRiskMetrics();
             }
@@ -451,7 +603,51 @@ public class TradingActivity extends AppCompatActivity {
         android.util.Log.d("TradingActivity", "Loading initial data");
         // ChartViewModel을 통해 웹소켓 연결 및 차트 데이터 로드
         chartViewModel.loadMarketData();
-        chartViewModel.loadChartData("bitcoin", 7);
+        // 코인 선택 (bitcoin)
+        chartViewModel.selectCoin("bitcoin");
+        // 현재 타임프레임으로 차트 데이터 로드
+        chartViewModel.loadChartData("bitcoin", 7, currentTimeframe);
+        
+        // UserSettings에서 기본 위험 자금 및 마진 모드 로드
+        new Thread(() -> {
+            try {
+                com.example.rsquare.data.repository.UserSettingsRepository settingsRepository = 
+                    new com.example.rsquare.data.repository.UserSettingsRepository(TradingActivity.this);
+                com.example.rsquare.data.repository.UserRepository userRepository = 
+                    new com.example.rsquare.data.repository.UserRepository(TradingActivity.this);
+                
+                com.example.rsquare.data.local.entity.UserSettings settings = 
+                    settingsRepository.getSettingsSync(1);
+                com.example.rsquare.data.local.entity.User user = userRepository.getUserSync(1);
+                
+                if (settings != null && user != null) {
+                    defaultRiskAmount = com.example.rsquare.domain.TradeCalculator.calculateRiskAmount(
+                        settings, user.getBalance()
+                    );
+                    
+                    // 기본 마진 모드 설정
+                    if (settings.getDefaultMarginMode() != null && !settings.getDefaultMarginMode().isEmpty()) {
+                        marginMode = settings.getDefaultMarginMode();
+                    }
+                    
+                    runOnUiThread(() -> {
+                        // 기본값을 힌트로 표시
+                        riskAmountInput.setHint(String.format(Locale.US, "$%.2f", defaultRiskAmount));
+                        
+                        // 마진 모드 버튼 상태 업데이트
+                        if ("ISOLATED".equals(marginMode)) {
+                            setMarginMode("ISOLATED", btnMarginIsolated);
+                        } else {
+                            setMarginMode("CROSS", btnMarginCross);
+                        }
+                        
+                        updateRiskMetrics();
+                    });
+                }
+            } catch (Exception e) {
+                android.util.Log.e("TradingActivity", "Error loading initial data", e);
+            }
+        }).start();
     }
     
     /**
@@ -524,7 +720,7 @@ public class TradingActivity extends AppCompatActivity {
     }
     
     /**
-     * 리스크 메트릭 업데이트 (R:R 비율, Risk Score)
+     * 리스크 메트릭 업데이트 (R:R 비율, Risk Score, 청산 예산가)
      */
     private void updateRiskMetrics() {
         // 메인 스레드에서만 실행되도록 보장
@@ -537,12 +733,17 @@ public class TradingActivity extends AppCompatActivity {
             String entryText = entryPriceInput.getText() != null ? entryPriceInput.getText().toString().trim() : "";
             String tpText = tpPriceInput.getText() != null ? tpPriceInput.getText().toString().trim() : "";
             String slText = slPriceInput.getText() != null ? slPriceInput.getText().toString().trim() : "";
+            String riskAmountText = riskAmountInput.getText() != null ? riskAmountInput.getText().toString().trim() : "";
             
             // 빈 문자열이면 기본값 표시
             if (entryText.isEmpty() || tpText.isEmpty() || slText.isEmpty()) {
                 rrRatioText.setText("0.00:1");
                 riskScoreTrading.setText("0/100 🔴");
                 riskScoreTrading.setTextColor(getColor(R.color.risk_danger));
+                if (liquidationPriceText != null) {
+                    liquidationPriceText.setText("청산 예산가: --");
+                    liquidationPriceText.setTextColor(getColor(R.color.tds_text_secondary));
+                }
                 return;
             }
             
@@ -550,10 +751,25 @@ public class TradingActivity extends AppCompatActivity {
             double tpPrice = parsePrice(tpText);
             double slPrice = parsePrice(slText);
             
+            // 거래 금액 파싱
+            double riskAmount = 0.0;
+            if (riskAmountText.isEmpty()) {
+                riskAmount = defaultRiskAmount; // 기본값 사용
+            } else {
+                try {
+                    riskAmount = Double.parseDouble(riskAmountText);
+                    if (riskAmount <= 0) {
+                        riskAmount = defaultRiskAmount;
+                    }
+                } catch (NumberFormatException e) {
+                    riskAmount = defaultRiskAmount;
+                }
+            }
+            
             // 파싱 결과 로깅 (디버깅용)
             android.util.Log.d("TradingActivity", String.format(Locale.US, 
-                "가격 파싱: Entry=%s->%.2f, TP=%s->%.2f, SL=%s->%.2f", 
-                entryText, entryPrice, tpText, tpPrice, slText, slPrice));
+                "가격 파싱: Entry=%s->%.2f, TP=%s->%.2f, SL=%s->%.2f, RiskAmount=%.2f", 
+                entryText, entryPrice, tpText, tpPrice, slText, slPrice, riskAmount));
             
             // 모든 가격이 유효한지 확인
             if (entryPrice > 0 && tpPrice > 0 && slPrice > 0) {
@@ -579,6 +795,9 @@ public class TradingActivity extends AppCompatActivity {
                         riskScoreTrading.setText("0/100 🔴");
                         riskScoreTrading.setTextColor(getColor(R.color.risk_danger));
                     }
+                    
+                    // 청산 예산가 계산 (선물 거래이고 레버리지가 1x보다 클 때만)
+                    updateLiquidationPrice(entryPrice, riskAmount, slPrice);
                 } else {
                     // 가격 순서가 잘못됨
                     android.util.Log.w("TradingActivity", String.format(Locale.US,
@@ -587,6 +806,10 @@ public class TradingActivity extends AppCompatActivity {
                     rrRatioText.setText("0.00:1");
                     riskScoreTrading.setText("0/100 🔴");
                     riskScoreTrading.setTextColor(getColor(R.color.risk_danger));
+                    if (liquidationPriceText != null) {
+                        liquidationPriceText.setText("청산 예산가: --");
+                        liquidationPriceText.setTextColor(getColor(R.color.tds_text_secondary));
+                    }
                 }
             } else {
                 // 가격이 입력되지 않음
@@ -596,12 +819,155 @@ public class TradingActivity extends AppCompatActivity {
                 rrRatioText.setText("0.00:1");
                 riskScoreTrading.setText("0/100 🔴");
                 riskScoreTrading.setTextColor(getColor(R.color.risk_danger));
+                if (liquidationPriceText != null) {
+                    liquidationPriceText.setText("청산 예산가: --");
+                    liquidationPriceText.setTextColor(getColor(R.color.tds_text_secondary));
+                }
             }
         } catch (Exception e) {
             android.util.Log.e("TradingActivity", "리스크 메트릭 업데이트 오류", e);
             rrRatioText.setText("0.00:1");
             riskScoreTrading.setText("0/100 🔴");
             riskScoreTrading.setTextColor(getColor(R.color.risk_danger));
+            if (liquidationPriceText != null) {
+                liquidationPriceText.setText("청산 예산가: --");
+                liquidationPriceText.setTextColor(getColor(R.color.tds_text_secondary));
+            }
+        }
+    }
+    
+    /**
+     * 청산 예산가 업데이트
+     */
+    private void updateLiquidationPrice(double entryPrice, double riskAmount, double slPrice) {
+        if (liquidationPriceText == null) {
+            return;
+        }
+        
+        // 선물 거래이고 레버리지가 1x보다 클 때만 청산가 계산
+        // 거래 모드는 UserSettings에서 가져와야 하지만, 일단 FUTURES로 가정
+        String tradeType = "FUTURES"; // TODO: UserSettings에서 가져오기
+        
+        if (!"FUTURES".equals(tradeType) || leverage <= 1 || riskAmount <= 0) {
+            liquidationPriceText.setText("청산 예산가: 없음 (현물 거래 또는 레버리지 1x)");
+            liquidationPriceText.setTextColor(getColor(R.color.tds_text_secondary));
+            
+            // 차트에서 청산 예산가 제거
+            if (tradingChart != null) {
+                String jsCode = "if (typeof setLiquidationPrice === 'function') { setLiquidationPrice(null); }";
+                tradingChart.post(() -> {
+                    if (tradingChart != null) {
+                        tradingChart.evaluateJavascript(jsCode, null);
+                    }
+                });
+            }
+            return;
+        }
+        
+        try {
+            // 기존 활성 포지션 조회 (Cross 모드일 때 필요)
+            final double[] totalBalanceRef = {10000.0}; // TODO: UserRepository에서 가져오기
+            
+            if ("CROSS".equals(marginMode)) {
+                // Cross 모드: 기존 포지션 조회
+                new Thread(() -> {
+                    try {
+                        com.example.rsquare.data.repository.TradingRepository tradingRepository = 
+                            new com.example.rsquare.data.repository.TradingRepository(TradingActivity.this);
+                        final java.util.List<com.example.rsquare.data.local.entity.Position> existingPositions = 
+                            tradingRepository.getActivePositionsSync(1);
+                        
+                        com.example.rsquare.data.repository.UserRepository userRepository = 
+                            new com.example.rsquare.data.repository.UserRepository(TradingActivity.this);
+                        com.example.rsquare.data.local.entity.User user = userRepository.getUserSync(1);
+                        if (user != null) {
+                            totalBalanceRef[0] = user.getBalance();
+                        }
+                        
+                        final double finalBalance = totalBalanceRef[0];
+                        runOnUiThread(() -> {
+                            calculateAndDisplayLiquidationPrice(entryPrice, riskAmount, slPrice, 
+                                existingPositions, finalBalance);
+                        });
+                    } catch (Exception e) {
+                        android.util.Log.e("TradingActivity", "Error loading positions for liquidation price", e);
+                        final double finalBalance = totalBalanceRef[0];
+                        runOnUiThread(() -> {
+                            calculateAndDisplayLiquidationPrice(entryPrice, riskAmount, slPrice, 
+                                new java.util.ArrayList<>(), finalBalance);
+                        });
+                    }
+                }).start();
+            } else {
+                // Isolated 모드: 기존 포지션 불필요
+                calculateAndDisplayLiquidationPrice(entryPrice, riskAmount, slPrice, 
+                    new java.util.ArrayList<>(), totalBalanceRef[0]);
+            }
+        } catch (Exception e) {
+            android.util.Log.e("TradingActivity", "청산 예산가 계산 오류", e);
+            liquidationPriceText.setText("청산 예산가: 계산 오류");
+            liquidationPriceText.setTextColor(getColor(R.color.risk_danger));
+        }
+    }
+    
+    /**
+     * 청산 예산가 계산 및 표시
+     */
+    private void calculateAndDisplayLiquidationPrice(double entryPrice, double riskAmount, 
+                                                     double slPrice,
+                                                     java.util.List<com.example.rsquare.data.local.entity.Position> existingPositions,
+                                                     double totalBalance) {
+        try {
+            double estimatedLiquidationPrice = MarginCalculator.calculateEstimatedLiquidationPrice(
+                entryPrice, riskAmount, leverage, marginMode, isLong, existingPositions, totalBalance
+            );
+            
+            String liquidationText = String.format(Locale.US, 
+                "청산 예산가: $%.2f", estimatedLiquidationPrice);
+            liquidationPriceText.setText(liquidationText);
+            
+            // 청산가가 SL보다 가까우면 위험 표시
+            boolean isDangerous = false;
+            if (isLong) {
+                // 롱 포지션: 청산가가 SL보다 높으면 위험 (청산가가 더 가까움)
+                isDangerous = estimatedLiquidationPrice > slPrice;
+            } else {
+                // 숏 포지션: 청산가가 SL보다 낮으면 위험 (청산가가 더 가까움)
+                isDangerous = estimatedLiquidationPrice < slPrice;
+            }
+            
+            if (isDangerous) {
+                liquidationPriceText.setTextColor(getColor(R.color.risk_danger));
+                liquidationPriceText.append(" ⚠️ SL보다 가까움");
+            } else {
+                liquidationPriceText.setTextColor(getColor(R.color.tds_warning));
+            }
+            
+            // 차트에 청산 예산가 전달
+            if (tradingChart != null) {
+                String jsCode = String.format(Locale.US,
+                    "if (typeof setLiquidationPrice === 'function') { setLiquidationPrice(%.2f); }",
+                    estimatedLiquidationPrice);
+                tradingChart.post(() -> {
+                    if (tradingChart != null) {
+                        tradingChart.evaluateJavascript(jsCode, null);
+                    }
+                });
+            }
+        } catch (Exception e) {
+            android.util.Log.e("TradingActivity", "청산 예산가 계산 오류", e);
+            liquidationPriceText.setText("청산 예산가: 계산 오류");
+            liquidationPriceText.setTextColor(getColor(R.color.risk_danger));
+            
+            // 오류 시 차트에서 청산 예산가 제거
+            if (tradingChart != null) {
+                String jsCode = "if (typeof setLiquidationPrice === 'function') { setLiquidationPrice(null); }";
+                tradingChart.post(() -> {
+                    if (tradingChart != null) {
+                        tradingChart.evaluateJavascript(jsCode, null);
+                    }
+                });
+            }
         }
     }
     
@@ -697,19 +1063,44 @@ public class TradingActivity extends AppCompatActivity {
                 return;
             }
             
+            // 거래 금액 파싱
+            String riskAmountText = riskAmountInput.getText() != null ? 
+                riskAmountInput.getText().toString().trim() : "";
+            Double riskAmount = null;
+            
+            if (!riskAmountText.isEmpty()) {
+                try {
+                    double parsedAmount = Double.parseDouble(riskAmountText);
+                    if (parsedAmount > 0) {
+                        riskAmount = parsedAmount;
+                    }
+                } catch (NumberFormatException e) {
+                    android.util.Log.w("TradingActivity", "거래 금액 파싱 실패: " + riskAmountText);
+                }
+            }
+            
+            // 람다 표현식에서 사용하기 위해 final 변수로 복사
+            final Double finalRiskAmount = riskAmount;
+            final String finalMarginMode = marginMode;
+            final String finalSymbol = currentSymbol;
+            final boolean finalIsLong = isLong;
+            final int finalLeverage = leverage;
+            
             // 사용자 ID 가져오기 (임시로 1 사용)
-            long userId = 1;
+            final long userId = 1;
             
             // 거래 실행 (백그라운드 스레드에서 실행)
             new Thread(() -> {
                 tradeExecutor.executeTrade(
                     userId,
-                    currentSymbol,
+                    finalSymbol,
                     entryPrice,
                     tpPrice,
                     slPrice,
-                    isLong,
-                    leverage,
+                    finalIsLong,
+                    finalLeverage,
+                    finalRiskAmount,
+                    finalMarginMode,
                     new TradeExecutor.OnTradeExecutedListener() {
                         @Override
                         public void onSuccess(long positionId, TradeCalculator.TradeCalculationResult result) {

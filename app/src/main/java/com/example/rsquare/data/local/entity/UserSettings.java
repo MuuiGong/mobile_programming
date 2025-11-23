@@ -38,6 +38,7 @@ public class UserSettings {
     // 거래 모드
     private String tradeMode; // "SPOT" or "FUTURES"
     private int defaultLeverage; // 기본 레버리지 (1x ~ 20x)
+    private String defaultMarginMode; // 기본 마진 모드: "ISOLATED" or "CROSS"
     
     // 위험 관리 방식
     private boolean useFixedRiskAmount; // true: 고정액, false: 비율
@@ -69,6 +70,7 @@ public class UserSettings {
         this.initialCapital = 10000.0;
         this.tradeMode = "FUTURES";
         this.defaultLeverage = 1;
+        this.defaultMarginMode = "CROSS"; // 기본값: Cross 마진 모드
         this.useFixedRiskAmount = false;
         this.fixedRiskAmount = 100.0;
         this.riskPercentage = 2.0;
@@ -121,6 +123,14 @@ public class UserSettings {
     
     public void setDefaultLeverage(int defaultLeverage) {
         this.defaultLeverage = defaultLeverage;
+    }
+    
+    public String getDefaultMarginMode() {
+        return defaultMarginMode;
+    }
+    
+    public void setDefaultMarginMode(String defaultMarginMode) {
+        this.defaultMarginMode = defaultMarginMode;
     }
     
     public boolean isUseFixedRiskAmount() {

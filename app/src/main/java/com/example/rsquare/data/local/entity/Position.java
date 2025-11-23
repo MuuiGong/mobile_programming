@@ -50,6 +50,7 @@ public class Position {
     private String exitReason; // 종료 사유 (TP_HIT, SL_HIT, MARGIN_CALL, MANUAL, TIMEOUT)
     private double maxDrawdown; // 최대 낙폭
     private double rrRatio; // R:R 비율
+    private String marginMode; // 마진 모드: "ISOLATED" or "CROSS"
     
     public Position() {
         this.openTime = new Date();
@@ -60,6 +61,7 @@ public class Position {
         this.riskAmount = 0.0;
         this.timeframe = "1H";
         this.maxDrawdown = 0.0;
+        this.marginMode = "CROSS"; // 기본값: Cross 마진 모드
     }
     
     /**
@@ -372,6 +374,14 @@ public class Position {
     
     public void setRrRatio(double rrRatio) {
         this.rrRatio = rrRatio;
+    }
+    
+    public String getMarginMode() {
+        return marginMode;
+    }
+    
+    public void setMarginMode(String marginMode) {
+        this.marginMode = marginMode;
     }
 }
 

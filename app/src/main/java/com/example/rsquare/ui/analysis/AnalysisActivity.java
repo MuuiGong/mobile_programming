@@ -4,7 +4,7 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
+import com.example.rsquare.ui.BaseActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -19,7 +19,7 @@ import java.util.Locale;
  * 분석 화면 Activity
  * 통계 분석 및 AI 코치 피드백
  */
-public class AnalysisActivity extends AppCompatActivity {
+public class AnalysisActivity extends BaseActivity {
     
     private DashboardViewModel dashboardViewModel;
     private CoachViewModel coachViewModel;
