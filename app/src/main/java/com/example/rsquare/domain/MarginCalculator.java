@@ -94,7 +94,7 @@ public class MarginCalculator {
         // 롱 포지션 청산가 = Entry - (totalMargin / (tradeSize * leverage))
         // 숏 포지션 청산가 = Entry + (totalMargin / (tradeSize * leverage))
         
-        double pnlPerUnit = totalMargin / (tradeSize * leverage);
+        double pnlPerUnit = totalMargin / tradeSize;
         
         if (isLongPosition) {
             return entryPrice - pnlPerUnit;
@@ -235,7 +235,7 @@ public class MarginCalculator {
         
         // 청산 가격 계산
         double positionSize = position.getEntryPrice() * position.getQuantity();
-        double pnlPerUnit = maxLoss / (position.getQuantity() * position.getLeverage());
+        double pnlPerUnit = maxLoss / position.getQuantity();
         
         if (position.isLong()) {
             return position.getEntryPrice() - pnlPerUnit;
@@ -299,6 +299,35 @@ public class MarginCalculator {
         }
     }
     
+    /**
+     * 리스크 기반 포지션 규모 계산
+     * 
+     * @param accountBalance 계좌 잔고
+     * @param riskPercentage 리스크 비율 (%)
+     * @param entryPrice 진입 가격
+     * @param stopLossPrice 손절 가격
+     * @return 추천 포지션 수량 (코인 개수)
+     */
+    public static double calculatePositionSize(double accountBalance, double riskPercentage, 
+                                               double entryPrice, double stopLossPrice) {
+        if (accountBalance <= 0 || riskPercentage <= 0 || entryPrice <= 0 || stopLossPrice <= 0) {
+            return 0.0;
+        }
+        
+        // 리스크 금액 = 잔고 * (리스크 비율 / 100)
+        double riskAmount = accountBalance * (riskPercentage / 100.0);
+        
+        // 가격 차이 (절대값)
+        double priceDiff = Math.abs(entryPrice - stopLossPrice);
+        
+        if (priceDiff == 0) {
+            return 0.0;
+        }
+        
+        // 포지션 수량 = 리스크 금액 / 가격 차이
+        return riskAmount / priceDiff;
+    }
+
     /**
      * 마진 상태 열거형
      */

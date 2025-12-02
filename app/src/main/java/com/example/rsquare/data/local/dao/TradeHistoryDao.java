@@ -45,5 +45,11 @@ public interface TradeHistoryDao {
            "AND timestamp >= :startDate AND timestamp <= :endDate " +
            "ORDER BY timestamp DESC")
     List<TradeHistory> getTradesByDateRangeSync(long userId, Date startDate, Date endDate);
+
+    @Query("SELECT * FROM trade_history WHERE timestamp >= :startTime ORDER BY timestamp DESC")
+    List<TradeHistory> getTradesSinceSync(long startTime);
+
+    @Query("SELECT * FROM trade_history ORDER BY timestamp DESC LIMIT 1")
+    TradeHistory getLastTradeSync();
 }
 

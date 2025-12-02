@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/tds_bg_dark"
+    android:paddingBottom="@dimen/tds_spacing_4">
+
+    <!-- 헤더 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/tds_spacing_4">
+        
+        <!-- 핸들 바 -->
+        <View
+            android:layout_width="40dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="@dimen/tds_spacing_3"
+            android:background="@drawable/bottom_sheet_handle"
+            android:backgroundTint="@color/tds_gray_600" />
+        
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="종목 선택"
+            style="@style/TDS_Text_Title2"
+            android:textColor="@color/tds_text_primary"
+            android:layout_marginBottom="@dimen/tds_spacing_3" />
+        
+        <!-- 검색 입력 -->
+        <EditText
+            android:id="@+id/search_input"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="종목 검색..."
+            android:textSize="14sp"
+            android:textColor="@color/tds_text_primary"
+            android:textColorHint="@color/tds_text_tertiary"
+            android:background="@drawable/edit_text_background"
+            android:paddingHorizontal="@dimen/tds_spacing_3"
+            android:paddingVertical="@dimen/tds_spacing_2"
+            android:inputType="text"
+            android:imeOptions="actionSearch"
+            android:drawableStart="@android:drawable/ic_menu_search"
+            android:drawableTint="@color/tds_text_tertiary"
+            android:drawablePadding="@dimen/tds_spacing_2" />
+    </LinearLayout>
+
+    <!-- 종목 리스트 -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/symbol_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxHeight="400dp"
+        android:paddingHorizontal="@dimen/tds_spacing_2"
+        android:clipToPadding="false"
+        android:scrollbars="vertical" />
+
+</LinearLayout>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="4dp"
+    android:layout_marginHorizontal="@dimen/tds_spacing_2"
+    app:cardBackgroundColor="@color/tds_bg_black"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="@dimen/tds_spacing_3"
+        android:gravity="center_vertical">
+
+        <!-- 라디오 버튼 (선택 표시) -->
+        <RadioButton
+            android:id="@+id/radio_button"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:buttonTint="@color/tds_blue_500"
+            android:clickable="false"
+            android:focusable="false" />
+
+        <!-- 종목 정보 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="@dimen/tds_spacing_3">
+
+            <TextView
+                android:id="@+id/symbol_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bitcoin"
+                style="@style/TDS_Text_Body1"
+                android:textColor="@color/tds_text_primary"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/symbol_code"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BTC"
+                style="@style/TDS_Text_Caption"
+                android:textColor="@color/tds_text_secondary"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
+
+        <!-- 심볼 아이콘 -->
+        <TextView
+            android:id="@+id/symbol_icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="₿"
+            android:textSize="24sp"
+            android:textColor="@color/tds_blue_500"
+            android:gravity="center"
+            android:background="@drawable/circle_background"
+            android:backgroundTint="@color/tds_blue_100" />
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

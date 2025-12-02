@@ -30,5 +30,10 @@ public interface BinanceApiService {
         @Query("startTime") Long startTime,
         @Query("endTime") Long endTime
     );
+    /**
+     * 거래소 정보 조회 (유효한 심볼 목록 확인용)
+     */
+    @GET("api/v3/exchangeInfo")
+    Call<com.example.rsquare.data.remote.model.ExchangeInfoResponse> getExchangeInfo();
 }
 

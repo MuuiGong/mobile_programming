@@ -121,6 +121,21 @@ public class NotificationHelper {
             RSquareApplication.CHANNEL_TRADE_ID
         );
     }
+    /**
+     * 주문 체결 알림
+     */
+    public void notifyOrderFilled(Position position) {
+        String title = "🔔 주문 체결 완료";
+        String message = position.getSymbol() + " 대기 주문이 체결되었습니다. " +
+            "진입가: " + NumberFormatter.formatPrice(position.getEntryPrice());
+        
+        sendNotification(
+            Constants.NOTIFICATION_ID_ORDER_FILLED + (int) position.getId(),
+            title,
+            message,
+            RSquareApplication.CHANNEL_TRADE_ID
+        );
+    }
     
     /**
      * 마진콜 알림 (프롬프트 요구사항)

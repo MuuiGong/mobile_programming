@@ -28,8 +28,8 @@ public class WebSocketClient {
     
     private OkHttpClient client;
     private WebSocket webSocket;
-    private List<PriceUpdateListener> listeners = new ArrayList<>();
-    private List<KlineUpdateListener> klineListeners = new ArrayList<>();
+    private List<PriceUpdateListener> listeners = new java.util.concurrent.CopyOnWriteArrayList<>();
+    private List<KlineUpdateListener> klineListeners = new java.util.concurrent.CopyOnWriteArrayList<>();
     private boolean isConnected = false;
     
     // Binance 심볼 매핑 (CoinGecko ID -> Binance Symbol)
@@ -44,6 +44,13 @@ public class WebSocketClient {
         put("avalanche-2", "avaxusdt");
     }};
     
+    private android.os.Handler reconnectHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private long reconnectDelay = 1000; // Initial delay 1 second
+    private static final long MAX_RECONNECT_DELAY = 30000; // Max delay 30 seconds
+    private List<String> lastCoinIds;
+    private String lastKlineInterval;
+    private boolean isConnecting = false;
+
     public WebSocketClient() {
         client = new OkHttpClient.Builder()
             .pingInterval(30, TimeUnit.SECONDS)
@@ -53,7 +60,7 @@ public class WebSocketClient {
     
     /**
      * WebSocket 연결 시작 (ticker만)
-     * @param coinIds CoinGecko 코인 ID 목록
+     * @param coinIds CoinGecko 코인 ID 목록 또는 Binance 심볼 목록
      */
     public void connect(List<String> coinIds) {
         connect(coinIds, null);
@@ -61,46 +68,62 @@ public class WebSocketClient {
     
     /**
      * WebSocket 연결 시작 (ticker + kline)
-     * @param coinIds CoinGecko 코인 ID 목록
+     * @param coinIds CoinGecko 코인 ID 목록 또는 Binance 심볼 목록
      * @param klineInterval kline 간격 (예: "1m", "5m", "1h") - null이면 ticker만 구독
      */
     public void connect(List<String> coinIds, String klineInterval) {
-        if (isConnected) {
-            Log.w(TAG, "WebSocket already connected");
+        if (isConnected || isConnecting) {
+            Log.w(TAG, "WebSocket already connected or connecting");
             return;
         }
+        
+        this.lastCoinIds = coinIds;
+        this.lastKlineInterval = klineInterval;
+        this.isConnecting = true;
         
         // Binance 심볼로 변환
         List<String> binanceSymbols = new ArrayList<>();
         for (String coinId : coinIds) {
             String symbol = SYMBOL_MAP.get(coinId.toLowerCase());
-            if (symbol != null) {
-                binanceSymbols.add(symbol.toLowerCase() + "@ticker");
+            if (symbol == null) {
+                // 매핑에 없으면 입력값을 그대로 사용하되, USDT가 없으면 추가
+                symbol = coinId.toLowerCase();
+                if (!symbol.endsWith("usdt")) {
+                    symbol += "usdt";
+                }
+            }
+            
+            if (symbol != null && !symbol.isEmpty()) {
+                binanceSymbols.add(symbol + "@ticker");
                 // kline 스트림도 추가
                 if (klineInterval != null && !klineInterval.isEmpty()) {
-                    binanceSymbols.add(symbol.toLowerCase() + "@kline_" + klineInterval);
+                    binanceSymbols.add(symbol + "@kline_" + klineInterval);
                 }
             }
         }
         
         if (binanceSymbols.isEmpty()) {
             Log.w(TAG, "No valid symbols to subscribe");
+            isConnecting = false;
             return;
         }
         
         Log.d(TAG, "Subscribing to streams: " + binanceSymbols);
         
-        // Binance WebSocket: 여러 스트림을 하나의 연결로 구독
-        // 형식: wss://stream.binance.com:9443/stream?streams=btcusdt@ticker/btcusdt@kline_1m
-        if (binanceSymbols.size() == 1) {
-            // 단일 스트림
-            connectToStream(binanceSymbols.get(0));
-        } else {
-            // 여러 스트림 (스트림 이름을 /로 구분)
-            String streams = String.join("/", binanceSymbols);
-            String wsUrl = "wss://stream.binance.com:9443/stream?streams=" + streams;
-            Log.d(TAG, "Connecting to: " + wsUrl);
-            connectToCombinedStream(wsUrl);
+        try {
+            // Binance WebSocket: 여러 스트림을 하나의 연결로 구독
+            if (binanceSymbols.size() == 1) {
+                connectToStream(binanceSymbols.get(0));
+            } else {
+                String streams = String.join("/", binanceSymbols);
+                String wsUrl = "wss://stream.binance.com:9443/stream?streams=" + streams;
+                Log.d(TAG, "Connecting to: " + wsUrl);
+                connectToCombinedStream(wsUrl);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error initiating connection", e);
+            isConnecting = false;
+            scheduleReconnect();
         }
     }
     
@@ -137,6 +160,8 @@ public class WebSocketClient {
             public void onOpen(WebSocket webSocket, Response response) {
                 Log.d(TAG, "WebSocket connected");
                 isConnected = true;
+                isConnecting = false;
+                reconnectDelay = 1000; // Reset delay on successful connection
                 notifyConnectionStatus(true);
             }
             
@@ -161,18 +186,35 @@ public class WebSocketClient {
             public void onClosed(WebSocket webSocket, int code, String reason) {
                 Log.d(TAG, "WebSocket closed: " + reason);
                 isConnected = false;
+                isConnecting = false;
                 notifyConnectionStatus(false);
+                scheduleReconnect();
             }
             
             @Override
             public void onFailure(WebSocket webSocket, Throwable t, Response response) {
                 Log.e(TAG, "WebSocket failure", t);
                 isConnected = false;
+                isConnecting = false;
                 notifyConnectionStatus(false);
-                
-                // 재연결은 외부에서 처리
+                scheduleReconnect();
             }
         };
+    }
+    
+    private void scheduleReconnect() {
+        if (lastCoinIds == null || isConnected || isConnecting) return;
+        
+        Log.d(TAG, "Scheduling reconnect in " + reconnectDelay + "ms");
+        reconnectHandler.postDelayed(() -> {
+            if (!isConnected && !isConnecting) {
+                Log.d(TAG, "Attempting reconnect...");
+                connect(lastCoinIds, lastKlineInterval);
+            }
+        }, reconnectDelay);
+        
+        // Exponential backoff
+        reconnectDelay = Math.min(reconnectDelay * 2, MAX_RECONNECT_DELAY);
     }
     
     /**
@@ -180,9 +222,13 @@ public class WebSocketClient {
      */
     private void handleMessage(String message) {
         try {
+            // ... (existing message handling logic) ...
+            // To save tokens, I'm not repeating the entire handleMessage body here unless necessary.
+            // But since I'm replacing the whole block, I MUST include it.
+            
             // 디버깅: kline 메시지인 경우 로그 출력
             if (message.contains("kline") || message.contains("@kline")) {
-                Log.d(TAG, "Received kline message: " + message.substring(0, Math.min(200, message.length())));
+                // Log.d(TAG, "Received kline message: " + message.substring(0, Math.min(200, message.length())));
             }
             
             JSONObject json = new JSONObject(message);
@@ -196,26 +242,18 @@ public class WebSocketClient {
                 if (stream.contains("@ticker")) {
                     String symbol = data.getString("s");
                     double price = data.getDouble("c");
+                    double changePercent = data.optDouble("P", 0.0); // 24시간 변동률
                     
-                    Log.d(TAG, "Received ticker update: " + symbol + " = " + price);
-                    
-                    // Binance 심볼을 CoinGecko ID로 변환
                     String coinId = getCoinIdFromSymbol(symbol);
-                    if (coinId != null) {
-                        Log.d(TAG, "Notifying price update: " + coinId + " = " + price);
-                        notifyPriceUpdate(coinId, price);
-                    } else {
-                        Log.w(TAG, "Could not convert symbol to coinId: " + symbol);
-                    }
+                    if (coinId == null) coinId = symbol;
+                    
+                    notifyPriceUpdate(coinId, price, changePercent);
                 }
                 // kline 스트림인지 확인
                 else if (stream.contains("@kline")) {
-                    Log.d(TAG, "Received kline stream: " + stream);
                     if (data.has("k")) {
                         JSONObject kline = data.getJSONObject("k");
-                        boolean isClosed = kline.getBoolean("x"); // 캔들이 닫혔는지 여부
-                        
-                        Log.d(TAG, "Kline isClosed: " + isClosed);
+                        boolean isClosed = kline.getBoolean("x");
                         
                         if (isClosed) {
                             String symbol = kline.getString("s");
@@ -226,39 +264,25 @@ public class WebSocketClient {
                             double close = kline.getDouble("c");
                             double volume = kline.getDouble("v");
                             
-                            Log.d(TAG, "Kline data: " + symbol + " " + close + " at " + openTime);
-                            
-                            // Binance 심볼을 CoinGecko ID로 변환
                             String coinId = getCoinIdFromSymbol(symbol);
-                            if (coinId != null) {
-                                Log.d(TAG, "Notifying kline update for: " + coinId);
-                                notifyKlineUpdate(coinId, openTime, open, high, low, close, volume);
-                            } else {
-                                Log.w(TAG, "Could not convert symbol to coinId: " + symbol);
-                            }
+                            if (coinId == null) coinId = symbol;
+                            
+                            notifyKlineUpdate(coinId, openTime, open, high, low, close, volume);
                         }
-                    } else {
-                        Log.w(TAG, "Kline data missing 'k' field");
                     }
                 }
             } 
-            // 단일 스트림 형식: {"e":"24hrTicker","s":"BTCUSDT","c":"50000.00",...}
+            // 단일 스트림 형식
             else if (json.has("e") && "24hrTicker".equals(json.getString("e"))) {
                 String symbol = json.getString("s");
                 double price = json.getDouble("c");
+                double changePercent = json.optDouble("P", 0.0);
                 
-                Log.d(TAG, "Received single ticker update: " + symbol + " = " + price);
-                
-                // Binance 심볼을 CoinGecko ID로 변환
                 String coinId = getCoinIdFromSymbol(symbol);
-                if (coinId != null) {
-                    Log.d(TAG, "Notifying price update: " + coinId + " = " + price);
-                    notifyPriceUpdate(coinId, price);
-                } else {
-                    Log.w(TAG, "Could not convert symbol to coinId: " + symbol);
-                }
+                if (coinId == null) coinId = symbol;
+                
+                notifyPriceUpdate(coinId, price, changePercent);
             }
-            // 단일 kline 스트림 형식: {"e":"kline","s":"BTCUSDT","k":{...}}
             else if (json.has("e") && "kline".equals(json.getString("e"))) {
                 if (json.has("k")) {
                     JSONObject kline = json.getJSONObject("k");
@@ -274,13 +298,13 @@ public class WebSocketClient {
                         double volume = kline.getDouble("v");
                         
                         String coinId = getCoinIdFromSymbol(symbol);
-                        if (coinId != null) {
-                            notifyKlineUpdate(coinId, openTime, open, high, low, close, volume);
-                        }
+                        if (coinId == null) coinId = symbol;
+                        
+                        notifyKlineUpdate(coinId, openTime, open, high, low, close, volume);
                     }
                 }
             }
-        } catch (JSONException e) {
+        } catch (Exception e) {
             Log.e(TAG, "Error parsing WebSocket message: " + message, e);
         }
     }
@@ -295,18 +319,28 @@ public class WebSocketClient {
                 return entry.getKey();
             }
         }
-        return null;
+        // 매핑에 없으면 심볼 그대로 반환 (예: "leo")
+        return symbol;
     }
     
     /**
      * 연결 해제
      */
     public void disconnect() {
+        // 재연결 예약 취소
+        reconnectHandler.removeCallbacksAndMessages(null);
+        lastCoinIds = null; // 재연결 방지
+        
         if (webSocket != null) {
-            webSocket.close(1000, "Normal closure");
+            try {
+                webSocket.close(1000, "Normal closure");
+            } catch (Exception e) {
+                Log.e(TAG, "Error closing WebSocket", e);
+            }
             webSocket = null;
         }
         isConnected = false;
+        isConnecting = false;
         notifyConnectionStatus(false);
     }
     
@@ -345,9 +379,9 @@ public class WebSocketClient {
     /**
      * 가격 업데이트 알림
      */
-    private void notifyPriceUpdate(String coinId, double price) {
+    private void notifyPriceUpdate(String coinId, double price, double changePercent) {
         for (PriceUpdateListener listener : listeners) {
-            listener.onPriceUpdate(coinId, price);
+            listener.onPriceUpdate(coinId, price, changePercent);
         }
     }
     
@@ -380,7 +414,7 @@ public class WebSocketClient {
      * 가격 업데이트 리스너 인터페이스
      */
     public interface PriceUpdateListener {
-        void onPriceUpdate(String coinId, double price);
+        void onPriceUpdate(String coinId, double price, double changePercent);
         void onConnectionStatusChanged(boolean connected);
     }
     

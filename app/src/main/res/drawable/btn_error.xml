@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/tds_error_alt">
+    <item>
+        <shape android:shape="rectangle">
+            <!-- 실패/숏 버튼: 빨간색 배경 + 테두리 -->
+            <solid android:color="@color/tds_error_alt" />
+            <stroke
+                android:width="1.5dp"
+                android:color="@color/tds_error_alt" />
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+</ripple>

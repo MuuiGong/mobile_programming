@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 4,
-    "identityHash": "18a67aa212ff323fb303e7745f70eaaf",
+    "identityHash": "7916b01adc974ac0fd73d1d0716b739a",
     "entities": [
       {
         "tableName": "users",
@@ -44,7 +44,7 @@
       },
       {
         "tableName": "positions",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` INTEGER NOT NULL, `symbol` TEXT, `quantity` REAL NOT NULL, `entryPrice` REAL NOT NULL, `takeProfit` REAL NOT NULL, `stopLoss` REAL NOT NULL, `isLong` INTEGER NOT NULL, `openTime` INTEGER, `closeTime` INTEGER, `isClosed` INTEGER NOT NULL, `pnl` REAL NOT NULL, `closedPrice` REAL, `tradeType` TEXT, `leverage` INTEGER NOT NULL, `riskAmount` REAL NOT NULL, `timeframe` TEXT, `exitReason` TEXT, `maxDrawdown` REAL NOT NULL, `rrRatio` REAL NOT NULL, `marginMode` TEXT, FOREIGN KEY(`userId`) REFERENCES `users`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` INTEGER NOT NULL, `symbol` TEXT, `quantity` REAL NOT NULL, `entryPrice` REAL NOT NULL, `takeProfit` REAL NOT NULL, `stopLoss` REAL NOT NULL, `isLong` INTEGER NOT NULL, `openTime` INTEGER, `closeTime` INTEGER, `isClosed` INTEGER NOT NULL, `pnl` REAL NOT NULL, `closedPrice` REAL, `tradeType` TEXT, `leverage` INTEGER NOT NULL, `riskAmount` REAL NOT NULL, `timeframe` TEXT, `exitReason` TEXT, `maxDrawdown` REAL NOT NULL, `rrRatio` REAL NOT NULL, `marginMode` TEXT, `status` TEXT, FOREIGN KEY(`userId`) REFERENCES `users`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -169,6 +169,12 @@
           {
             "fieldPath": "marginMode",
             "columnName": "marginMode",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
             "affinity": "TEXT",
             "notNull": false
           }
@@ -727,7 +733,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '18a67aa212ff323fb303e7745f70eaaf')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7916b01adc974ac0fd73d1d0716b739a')"
     ]
   }
 }

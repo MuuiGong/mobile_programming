@@ -14,25 +14,42 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:background="@color/tds_bg_dark"
-        android:padding="16dp"
+        android:padding="@dimen/tds_spacing_4"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="트레이딩 모드 선택"
-            android:textSize="24sp"
-            android:textColor="@color/tds_text_primary"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="@dimen/tds_spacing_2">
+
+            <ImageButton
+                android:id="@+id/btn_back"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_arrow_back"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:layout_marginEnd="@dimen/tds_spacing_2"
+                app:tint="@color/tds_text_primary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="트레이딩 모드 선택"
+                style="@style/TDS_Text_Title1"
+                android:textStyle="bold" />
+        </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="원하는 거래 모드를 선택하세요"
-            android:textSize="14sp"
-            android:textColor="@color/tds_text_secondary" />
+            style="@style/TDS_Text_Body2"
+            android:textColor="@color/tds_text_secondary"
+            android:layout_marginStart="48dp" />
     </LinearLayout>
 
     <!-- Mode Selection -->
@@ -41,30 +58,27 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
-        android:layout_marginTop="16dp"
+        android:padding="@dimen/tds_spacing_4"
+        android:layout_marginTop="@dimen/tds_spacing_4"
         app:layout_constraintTop_toBottomOf="@id/header"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- 코인 선물 모드 -->
+        <!-- 코인 현물 모드 (순서 변경: 현물 -> 선물) -->
         <androidx.cardview.widget.CardView
-            android:id="@+id/card_futures"
+            android:id="@+id/card_stock"
+            style="@style/TDS_Card"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginEnd="8dp"
+            android:layout_marginEnd="@dimen/tds_spacing_2"
             android:clickable="true"
-            android:focusable="true"
-            app:cardBackgroundColor="@color/tds_bg_dark"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp">
+            android:focusable="true">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp"
                 android:gravity="center"
                 android:clickable="false"
                 android:focusable="false">
@@ -74,45 +88,41 @@
                     android:layout_height="wrap_content"
                     android:text="₿"
                     android:textSize="48sp"
-                    android:layout_marginBottom="12dp" />
+                    android:layout_marginBottom="@dimen/tds_spacing_3" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="코인 선물"
-                    android:textSize="18sp"
-                    android:textColor="@color/tds_text_primary"
+                    android:text="코인 현물"
+                    style="@style/TDS_Text_Title3"
                     android:textStyle="bold"
-                    android:layout_marginBottom="4dp" />
+                    android:layout_marginBottom="@dimen/tds_spacing_1" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="레버리지 거래"
-                    android:textSize="12sp"
+                    android:text="레버리지 없음"
+                    style="@style/TDS_Text_Caption"
                     android:textColor="@color/tds_text_secondary"
                     android:gravity="center" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- 주식 모의투자 모드 -->
+        <!-- 코인 선물 모드 -->
         <androidx.cardview.widget.CardView
-            android:id="@+id/card_stock"
+            android:id="@+id/card_futures"
+            style="@style/TDS_Card"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="@dimen/tds_spacing_2"
             android:clickable="true"
-            android:focusable="true"
-            app:cardBackgroundColor="@color/tds_bg_dark"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp">
+            android:focusable="true">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp"
                 android:gravity="center"
                 android:clickable="false"
                 android:focusable="false">
@@ -120,24 +130,23 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="📈"
+                    android:text="₿"
                     android:textSize="48sp"
-                    android:layout_marginBottom="12dp" />
+                    android:layout_marginBottom="@dimen/tds_spacing_3" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="주식 모의투자"
-                    android:textSize="18sp"
-                    android:textColor="@color/tds_text_primary"
+                    android:text="코인 선물"
+                    style="@style/TDS_Text_Title3"
                     android:textStyle="bold"
-                    android:layout_marginBottom="4dp" />
+                    android:layout_marginBottom="@dimen/tds_spacing_1" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="현물 거래"
-                    android:textSize="12sp"
+                    android:text="레버리지 거래"
+                    style="@style/TDS_Text_Caption"
                     android:textColor="@color/tds_text_secondary"
                     android:gravity="center" />
             </LinearLayout>
@@ -150,11 +159,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="인기 자산"
-        android:textSize="18sp"
-        android:textColor="@color/tds_text_primary"
+        style="@style/TDS_Text_Title3"
         android:textStyle="bold"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginStart="@dimen/tds_spacing_4"
+        android:layout_marginTop="@dimen/tds_spacing_5"
         app:layout_constraintTop_toBottomOf="@id/mode_selection"
         app:layout_constraintStart_toStartOf="parent" />
 
@@ -162,7 +170,7 @@
         android:id="@+id/asset_recycler"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:padding="16dp"
+        android:padding="@dimen/tds_spacing_4"
         app:layout_constraintTop_toBottomOf="@id/section_title"
         app:layout_constraintBottom_toTopOf="@id/bottom_action"
         app:layout_constraintStart_toStartOf="parent"
@@ -171,14 +179,11 @@
     <!-- Bottom Action -->
     <Button
         android:id="@+id/bottom_action"
+        style="@style/TDS_Button_Primary"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="wrap_content"
         android:text="트레이딩 시작"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:background="@drawable/btn_primary"
-        android:textColor="@color/tds_text_primary"
-        android:layout_margin="16dp"
+        android:layout_margin="@dimen/tds_spacing_4"
         android:enabled="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

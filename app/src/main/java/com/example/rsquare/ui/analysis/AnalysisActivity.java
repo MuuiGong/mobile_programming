@@ -47,7 +47,7 @@ public class AnalysisActivity extends BaseActivity {
         setupObservers();
         
         // 데이터 새로고침
-        dashboardViewModel.refresh();
+        dashboardViewModel.refreshData();
         coachViewModel.analyzeTradingSession();
     }
     

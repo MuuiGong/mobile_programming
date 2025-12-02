@@ -5,56 +5,66 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
-    app:cardBackgroundColor="@color/tds_bg_dark"
-    app:cardCornerRadius="8dp"
+    style="@style/TDS_Card_Glass"
+    app:cardCornerRadius="12dp"
     app:cardElevation="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="12dp"
+        android:padding="16dp"
         android:gravity="center_vertical">
 
-        <!-- 심볼 -->
-        <TextView
-            android:id="@+id/symbol_text"
+        <!-- 심볼 & 시간 -->
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="BTCUSDT"
-            android:textSize="16sp"
-            android:textColor="@color/tds_text_primary"
-            android:textStyle="bold" />
+            android:orientation="vertical">
 
-        <!-- 시간 -->
-        <TextView
-            android:id="@+id/time_text"
+            <TextView
+                android:id="@+id/symbol_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BTCUSDT"
+                style="@style/TDS_Text_Body1"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/time_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="18:45"
+                style="@style/TDS_Text_Caption"
+                android:textColor="@color/tds_text_secondary" />
+        </LinearLayout>
+
+        <!-- 손익 & 상태 -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="18:45"
-            android:textSize="14sp"
-            android:textColor="@color/tds_text_secondary"
-            android:layout_marginEnd="16dp" />
+            android:orientation="vertical"
+            android:gravity="end">
 
-        <!-- 손익 -->
-        <TextView
-            android:id="@+id/pnl_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="+$49.95"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginEnd="16dp" />
+            <TextView
+                android:id="@+id/pnl_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="+$49.95"
+                style="@style/TDS_Text_Body1"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
 
-        <!-- 상태 -->
-        <TextView
-            android:id="@+id/status_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="✓TP"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            <TextView
+                android:id="@+id/status_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="✓TP"
+                style="@style/TDS_Text_Caption"
+                android:textStyle="bold" />
+        </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>
 

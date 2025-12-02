@@ -269,5 +269,49 @@ public class RiskCalculator {
         }
         return ((double) winCount / totalCount) * 100;
     }
+    /**
+     * 단일 포지션 리스크 스코어 계산
+     * 
+     * @param riskAmount 리스크 금액 (손절 시 손실액)
+     * @param balance 계정 잔고
+     * @param rrRatio 손익비 (R:R)
+     * @return 리스크 스코어 (0-100)
+     */
+    public static double calculatePositionRiskScore(double riskAmount, double balance, double rrRatio) {
+        if (balance <= 0) return 0;
+        
+        // 1. 리스크 비율 (Risk %)
+        // 권장 리스크: 1~2% (100점)
+        // 위험 리스크: 5% 이상 (감점)
+        double riskPercent = (riskAmount / balance) * 100;
+        
+        // 기본 점수 100점에서 시작
+        double score = 100;
+        
+        // 리스크 비율에 따른 감점
+        // 1% 이하는 감점 없음
+        // 1% ~ 5%: 1%당 10점 감점
+        // 5% 이상: 1%당 20점 감점
+        if (riskPercent > 1.0) {
+            if (riskPercent <= 5.0) {
+                score -= (riskPercent - 1.0) * 10;
+            } else {
+                score -= 40; // 5%까지의 감점 (4 * 10)
+                score -= (riskPercent - 5.0) * 20;
+            }
+        }
+        
+        // 2. 손익비 (R:R) 보너스/페널티
+        // R:R 1:2 이상: 보너스
+        // R:R 1:1 미만: 페널티
+        if (rrRatio >= 2.0) {
+            score += (rrRatio - 2.0) * 5; // 2.0 이상일 때 0.1당 0.5점 보너스
+        } else if (rrRatio < 1.0 && rrRatio > 0) {
+            score -= (1.0 - rrRatio) * 20; // 1.0 미만일 때 페널티
+        }
+        
+        // 0~100 범위 제한
+        return Math.min(100, Math.max(0, score));
+    }
 }
 

@@ -43,6 +43,7 @@ public class Constants {
     public static final int NOTIFICATION_ID_RISK_WARNING = 1003;
     public static final int NOTIFICATION_ID_CHALLENGE_COMPLETE = 1004;
     public static final int NOTIFICATION_ID_DAILY_REMINDER = 1005;
+    public static final int NOTIFICATION_ID_ORDER_FILLED = 1006;
     
     // WorkManager
     public static final String WORK_TRADING_MONITOR = "trading_monitor_work";

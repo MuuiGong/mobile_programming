@@ -1,48 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Primary colors -->
-    <color name="primary">#2196F3</color>
-    <color name="primary_dark">#1976D2</color>
-    <color name="primary_light">#BBDEFB</color>
+    <!-- ========================================
+         Premium Dark Tech Design System
+         Concept: Deep Space + Neon Accents
+    ========================================= -->
+
+    <!-- Base Backgrounds (Deep & Rich) -->
+    <color name="premium_bg_black">#0F1115</color>      <!-- Slightly softer black -->
+    <color name="premium_bg_dark">#161820</color>       <!-- Rich Charcoal -->
+    <color name="premium_bg_surface">#20232E</color>    <!-- Deep Slate -->
+    <color name="premium_bg_surface_light">#2C303E</color> <!-- Lighter Slate -->
     
-    <!-- Material Design default colors (required by system themes) -->
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
+    <!-- Brand Gradients (Start/End colors for gradients) -->
+    <color name="premium_gradient_blue_start">#3366FF</color> <!-- Softer Blue -->
+    <color name="premium_gradient_blue_end">#1939B7</color>
+    <color name="premium_gradient_green_start">#00C853</color> <!-- Natural Green -->
+    <color name="premium_gradient_green_end">#009624</color>
+    <color name="premium_gradient_red_start">#FF3D00</color>   <!-- Natural Red -->
+    <color name="premium_gradient_red_end">#DD2C00</color>
     
-    <!-- Accent colors -->
-    <color name="accent">#26a69a</color>
-    <color name="accent_dark">#00897B</color>
-    <color name="accent_light">#80CBC4</color>
+    <!-- Neon Accents (Refined & Professional) -->
+    <color name="premium_neon_blue">#3B82F6</color>   <!-- Professional Blue -->
+    <color name="premium_neon_green">#10B981</color>  <!-- Fintech Green -->
+    <color name="premium_neon_red">#EF4444</color>    <!-- Fintech Red -->
+    <color name="premium_neon_yellow">#F59E0B</color> <!-- Warm Amber -->
+    <color name="premium_gold">#D4AF37</color>        <!-- Classic Gold -->
     
-    <!-- Background colors -->
-    <color name="background_dark">#1e222d</color>
-    <color name="background_darker">#131722</color>
-    <color name="background_light">#2b2b43</color>
+    <!-- Text System (Crisp & Clean) -->
+    <color name="premium_text_primary">#FFFFFF</color>
+    <color name="premium_text_secondary">#B0B3C2</color>
+    <color name="premium_text_tertiary">#6E7282</color>
+    <color name="premium_text_disabled">#454854</color>
     
-    <!-- Text colors -->
-    <color name="text_primary">#d1d4dc</color>
-    <color name="text_secondary">#787b86</color>
+    <!-- Borders & Dividers (Subtle) -->
+    <color name="premium_border">#2A2D3A</color>
+    <color name="premium_divider">#1C1E29</color>
     
-    <!-- Status colors -->
-    <color name="success">#26a69a</color>
-    <color name="warning">#FFC107</color>
-    <color name="error">#ef5350</color>
-    <color name="info">#2196F3</color>
+    <!-- Mapping to Standard Names -->
+    <color name="okx_bg_primary">@color/premium_bg_dark</color>
+    <color name="okx_bg_secondary">@color/premium_bg_surface</color>
+    <color name="okx_bg_tertiary">@color/premium_bg_surface_light</color>
+    <color name="okx_bg_elevated">@color/premium_bg_surface_light</color>
     
-    <!-- Common colors -->
+    <color name="okx_green">@color/premium_neon_green</color>
+    <color name="okx_red">@color/premium_neon_red</color>
+    <color name="okx_blue">@color/premium_neon_blue</color>
+    
+    <color name="okx_text_primary">@color/premium_text_primary</color>
+    <color name="okx_text_secondary">@color/premium_text_secondary</color>
+    <color name="okx_text_tertiary">@color/premium_text_tertiary</color>
+    
+    <!-- Legacy Support -->
+    <color name="primary">@color/premium_neon_blue</color>
+    <color name="primary_dark">@color/premium_gradient_blue_end</color>
+    <color name="primary_light">@color/premium_gradient_blue_start</color>
+    <color name="accent">@color/premium_neon_green</color>
+    <color name="background_dark">@color/premium_bg_dark</color>
+    <color name="background_light">@color/premium_bg_surface</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
     <color name="transparent">#00000000</color>
     
-    <!-- Chart colors -->
-    <color name="chart_up">#26a69a</color>
-    <color name="chart_down">#ef5350</color>
-    <color name="chart_grid">#2b2b43</color>
+    <!-- Missing Legacy Resources (Mapped to Premium) -->
+    <color name="accent_dark">@color/premium_gradient_green_end</color>
+    <color name="accent_light">@color/premium_gradient_green_start</color>
+    <color name="purple_200">@color/premium_neon_blue</color>
+    <color name="purple_500">@color/premium_gradient_blue_start</color>
+    <color name="purple_700">@color/premium_gradient_blue_end</color>
+    <color name="teal_200">@color/premium_neon_green</color>
+    <color name="teal_700">@color/premium_gradient_green_end</color>
+    <color name="background_darker">@color/premium_bg_black</color>
     
-    <!-- Material Components 기본 색상 (BottomNavigationView 필수) -->
-    <color name="mtrl_bottom_nav_item_tint">#787b86</color>
-    <color name="mtrl_bottom_nav_item_tint_selected">#3182FF</color>
+    <!-- Chart Colors -->
+    <color name="chart_background">@color/premium_bg_dark</color>
+    <color name="chart_grid">@color/premium_border</color>
+    
+    <!-- TDS Mappings -->
+    <color name="tds_blue_100">#1A2962FF</color>
+    
+    <color name="mtrl_bottom_nav_item_tint">@color/premium_text_tertiary</color>
+    <color name="mtrl_bottom_nav_item_tint_selected">@color/premium_neon_blue</color>
 </resources>

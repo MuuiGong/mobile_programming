@@ -72,7 +72,7 @@ public class HistoryActivity extends BaseActivity {
         setupObservers();
         
         // 데이터 새로고침
-        viewModel.refresh();
+        viewModel.refreshData();
         loadHistory();
     }
     
@@ -368,7 +368,8 @@ public class HistoryActivity extends BaseActivity {
         } else {
             emptyText.setVisibility(android.view.View.GONE);
             historyRecycler.setVisibility(android.view.View.VISIBLE);
-            // TODO: Adapter에 데이터 설정
+            // Adapter에 데이터 설정
+            adapter.setTrades(positions);
         }
     }
     

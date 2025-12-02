@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/tds_bg_black"
+    android:fitsSystemWindows="true">
+
+    <!-- Toolbar -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/tds_bg_dark"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:navigationIcon="?attr/homeAsUpIndicator"
+        app:title="포지션 상세" />
+
+    <!-- Info Panel (Timeframe, Risk, Reward, R:R) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/info_panel"
+        style="@style/TDS_Card_Glass"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/tds_spacing_2"
+        android:layout_marginTop="@dimen/tds_spacing_2"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="@dimen/tds_spacing_2">
+
+            <!-- Timeframe (Clickable) -->
+            <LinearLayout
+                android:id="@+id/timeframe_container"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:paddingVertical="@dimen/tds_spacing_1">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Time"
+                    style="@style/TDS_Text_Caption" />
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+                    <TextView
+                        android:id="@+id/timeframe_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1H"
+                        style="@style/TDS_Text_Body2"
+                        android:textStyle="bold"
+                        android:layout_marginEnd="4dp" />
+                    <!-- Dropdown Icon -->
+                    <ImageView
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:src="@android:drawable/arrow_down_float"
+                        app:tint="@color/tds_text_tertiary" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="@color/glass_border"
+                android:layout_marginHorizontal="@dimen/tds_spacing_1" />
+
+            <!-- Risk Score -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Score"
+                    style="@style/TDS_Text_Caption" />
+                <TextView
+                    android:id="@+id/risk_score_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="-"
+                    style="@style/TDS_Text_Body2"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="@color/glass_border"
+                android:layout_marginHorizontal="@dimen/tds_spacing_1" />
+
+            <!-- R:R -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="R:R"
+                    style="@style/TDS_Text_Caption" />
+                <TextView
+                    android:id="@+id/rr_ratio_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="-"
+                    style="@style/TDS_Text_Body2"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- TradingView WebView (TradingActivity와 동일) -->
+    <WebView
+        android:id="@+id/trading_chart"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/tds_spacing_2"
+        app:layout_constraintTop_toBottomOf="@id/info_panel"
+        app:layout_constraintBottom_toTopOf="@id/control_panel"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Control Panel (TradingActivity와 동일 구조, EP만 읽기 전용) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/control_panel"
+        style="@style/TDS_Card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/tds_spacing_2"
+        android:layout_marginBottom="@dimen/tds_spacing_2"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Entry, TP, SL 가격 입력 (3열) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="@dimen/tds_spacing_3">
+
+                <!-- Entry (읽기 전용) -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginEnd="@dimen/tds_spacing_1">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Entry"
+                        style="@style/TDS_Text_Caption"
+                        android:layout_marginBottom="@dimen/tds_spacing_1" />
+                    <EditText
+                        android:id="@+id/entry_price_input"
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:hint="0.00"
+                        android:textSize="14sp"
+                        android:textColor="@color/tds_text_primary"
+                        android:inputType="numberDecimal|numberSigned"
+                        android:background="@drawable/edit_text_background"
+                        android:paddingHorizontal="@dimen/tds_spacing_3"
+                        android:paddingVertical="@dimen/tds_spacing_2"
+                        android:enabled="false"
+                        android:focusable="false"
+                        android:focusableInTouchMode="false" />
+                </LinearLayout>
+
+                <!-- TP (수정 가능) -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginHorizontal="@dimen/tds_spacing_1">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="TP"
+                        style="@style/TDS_Text_Caption"
+                        android:textColor="@color/tds_success_alt"
+                        android:layout_marginBottom="@dimen/tds_spacing_1" />
+                    <EditText
+                        android:id="@+id/tp_price_input"
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:hint="0.00"
+                        android:textSize="14sp"
+                        android:textColor="@color/tds_success_alt"
+                        android:inputType="numberDecimal|numberSigned"
+                        android:background="@drawable/edit_text_background"
+                        android:paddingHorizontal="@dimen/tds_spacing_3"
+                        android:paddingVertical="@dimen/tds_spacing_2" />
+                </LinearLayout>
+                
+                <!-- SL (수정 가능) -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="@dimen/tds_spacing_1">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="SL"
+                        style="@style/TDS_Text_Caption"
+                        android:textColor="@color/tds_error_alt"
+                        android:layout_marginBottom="@dimen/tds_spacing_1" />
+                    <EditText
+                        android:id="@+id/sl_price_input"
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:hint="0.00"
+                        android:textSize="14sp"
+                        android:textColor="@color/tds_error_alt"
+                        android:inputType="numberDecimal|numberSigned"
+                        android:background="@drawable/edit_text_background"
+                        android:paddingHorizontal="@dimen/tds_spacing_3"
+                        android:paddingVertical="@dimen/tds_spacing_2" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 저장 버튼 -->
+            <Button
+                android:id="@+id/btn_save"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="저장"
+                android:textColor="@color/tds_text_primary"
+                android:backgroundTint="@color/tds_blue_400"
+                android:layout_marginTop="@dimen/tds_spacing_2" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+

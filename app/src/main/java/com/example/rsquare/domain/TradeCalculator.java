@@ -51,7 +51,7 @@ public class TradeCalculator {
             (exitPrice - entryPrice) : 
             (entryPrice - exitPrice);
         
-        return priceDiff * tradeSize * leverage;
+        return priceDiff * tradeSize;
     }
     
     /**

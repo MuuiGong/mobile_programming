@@ -54,5 +54,22 @@ public class NumberFormatter {
             return priceFormat.format(number);
         }
     }
+    
+    /**
+     * 수량 포맷 (소수점 최대 8자리, 불필요한 0 제거)
+     */
+    public static String formatQuantity(double quantity) {
+        // 소수점 이하 0 제거를 위해 포맷팅
+        if (quantity == (long) quantity) {
+            return String.format(Locale.US, "%.0f", quantity);
+        } else {
+            // 소수점이 있으면 최대 8자리까지 표시하되, 끝의 0은 제거
+            String formatted = String.format(Locale.US, "%.8f", quantity);
+            // 끝의 0 제거
+            formatted = formatted.replaceAll("0+$", "");
+            formatted = formatted.replaceAll("\\.$", "");
+            return formatted;
+        }
+    }
 }
 

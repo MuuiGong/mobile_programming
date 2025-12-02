@@ -46,6 +46,7 @@ public class TradeExecutor {
     public void executeTrade(long userId, String symbol, double entryPrice, 
                              double tpPrice, double slPrice, boolean isLong, 
                              Integer leverage, Double riskAmount, String marginMode,
+                             double currentPrice,
                              OnTradeExecutedListener listener) {
         
         // 사용자 및 설정 조회
@@ -120,6 +121,18 @@ public class TradeExecutor {
             entryPrice, tpPrice, slPrice, finalRiskAmount, finalTradeType, actualLeverage, isLong
         );
         
+        // 포지션 상태 결정 (Pending vs Active)
+        // 현재 가격과 진입 가격의 차이가 0.1% 이상이면 Pending으로 처리
+        String status = "ACTIVE";
+        if (currentPrice > 0) {
+            double diffPercent = Math.abs(entryPrice - currentPrice) / currentPrice;
+            if (diffPercent > 0.001) { // 0.1% 차이
+                status = "PENDING";
+            }
+        }
+        
+        final String finalStatus = status;
+        
         // 포지션 생성
         Position position = new Position();
         position.setUserId(userId);
@@ -135,17 +148,20 @@ public class TradeExecutor {
         position.setTimeframe(settings.getDefaultTimeframe());
         position.setRrRatio(calculation.getRrRatio());
         position.setMarginMode(finalMarginMode);
+        position.setStatus(finalStatus);
         
         // 포지션 열기
         tradingRepository.openPosition(position, new TradingRepository.OnPositionOpenedListener() {
             @Override
             public void onPositionOpened(long positionId) {
-                Log.d(TAG, "Position opened: " + positionId);
+                Log.d(TAG, "Position opened: " + positionId + ", Status: " + finalStatus);
                 
-                // 잔고 차감 (현물은 전체, 선물은 마진만)
-                double balanceToDeduct = "SPOT".equals(finalTradeType) ?
-                    (calculation.getTradeSize() * finalEntryPrice) :
-                    (calculation.getTradeSize() * finalEntryPrice / actualLeverage);
+                // 잔고 차감 (마진 + 수수료)
+                double balanceToDeduct = MarginCalculator.calculateUsedMargin(
+                    finalEntryPrice, 
+                    calculation.getTradeSize(), 
+                    actualLeverage
+                );
                 
                 userRepository.addToBalance(finalUserId, -balanceToDeduct);
                 

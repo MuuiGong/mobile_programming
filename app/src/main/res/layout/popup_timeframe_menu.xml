@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="120dp"
+    android:layout_height="wrap_content"
+    style="@style/TDS_Card_Popup"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="8dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingVertical="8dp">
+
+        <TextView
+            android:id="@+id/menu_15m"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="15m"
+            style="@style/TDS_Text_Body2"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="12dp"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical" />
+
+        <TextView
+            android:id="@+id/menu_1h"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="1H"
+            style="@style/TDS_Text_Body2"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="12dp"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical" />
+
+        <TextView
+            android:id="@+id/menu_4h"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="4H"
+            style="@style/TDS_Text_Body2"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="12dp"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical" />
+
+        <TextView
+            android:id="@+id/menu_1d"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="1D"
+            style="@style/TDS_Text_Body2"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="12dp"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

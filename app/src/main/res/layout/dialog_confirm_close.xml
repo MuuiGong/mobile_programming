@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="320dp"
+    android:layout_height="wrap_content"
+    style="@style/TDS_Card_Popup"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="8dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/dialog_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="포지션 종료"
+            style="@style/TDS_Text_Subtitle1"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Message -->
+        <TextView
+            android:id="@+id/dialog_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="BTCUSDT 포지션을 현재 가격으로 종료하시겠습니까?"
+            style="@style/TDS_Text_Body2"
+            android:textColor="@color/tds_text_secondary"
+            android:layout_marginBottom="24dp"
+            android:lineSpacingExtra="4dp" />
+
+        <!-- PnL Info Container -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/tds_input_background"
+            android:padding="16dp"
+            android:layout_marginBottom="24dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+                <TextView
+                    android:id="@+id/price_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="종료 가격"
+                    style="@style/TDS_Text_Caption" />
+                <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
+                <TextView
+                    android:id="@+id/dialog_price"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="$98,000.00"
+                    style="@style/TDS_Text_Body2"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="예상 손익"
+                    style="@style/TDS_Text_Caption" />
+                <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
+                <TextView
+                    android:id="@+id/dialog_pnl"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="+$1,200.00"
+                    style="@style/TDS_Text_Body2"
+                    android:textColor="@color/tds_success_alt"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_cancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="취소"
+                android:textColor="@color/tds_text_secondary"
+                android:background="?attr/selectableItemBackground"
+                android:minWidth="80dp"
+                android:layout_marginEnd="8dp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_confirm"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:text="종료하기"
+                android:textColor="@color/premium_text_primary"
+                android:background="@drawable/tds_button_primary_bg"
+                android:paddingHorizontal="24dp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

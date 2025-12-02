@@ -5,7 +5,9 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
+
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.rsquare.ui.BaseActivity;
 
@@ -18,14 +20,12 @@ import com.example.rsquare.ui.onboarding.SurveyActivity;
  */
 public class OnboardingActivity extends BaseActivity {
     
-    private TextView titleText;
-    private TextView descriptionText;
+    private ViewPager2 viewPager;
     private Button btnNext;
     private Button btnSkip;
-    private View progressDot1, progressDot2, progressDot3;
+    private View[] indicators;
     
-    private int currentStep = 1;
-    private static final int TOTAL_STEPS = 3;
+    private static final int TOTAL_SLIDES = 4;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,69 +41,84 @@ public class OnboardingActivity extends BaseActivity {
         }
         
         initViews();
+        setupViewPager();
         setupListeners();
-        updateStep(1);
     }
     
     private void initViews() {
-        titleText = findViewById(R.id.onboarding_title);
-        descriptionText = findViewById(R.id.onboarding_description);
+        viewPager = findViewById(R.id.view_pager);
         btnNext = findViewById(R.id.btn_next);
         btnSkip = findViewById(R.id.btn_skip);
-        progressDot1 = findViewById(R.id.progress_dot_1);
-        progressDot2 = findViewById(R.id.progress_dot_2);
-        progressDot3 = findViewById(R.id.progress_dot_3);
+        
+        indicators = new View[]{
+            findViewById(R.id.indicator_0),
+            findViewById(R.id.indicator_1),
+            findViewById(R.id.indicator_2),
+            findViewById(R.id.indicator_3)
+        };
+    }
+    
+    private void setupViewPager() {
+        OnboardingPagerAdapter adapter = new OnboardingPagerAdapter();
+        viewPager.setAdapter(adapter);
+        
+        // Page change callback
+        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                updateIndicators(position);
+                updateButtons(position);
+            }
+        });
     }
     
     private void setupListeners() {
         btnNext.setOnClickListener(v -> {
-            if (currentStep < TOTAL_STEPS) {
-                updateStep(currentStep + 1);
+            int currentItem = viewPager.getCurrentItem();
+            if (currentItem < TOTAL_SLIDES - 1) {
+                viewPager.setCurrentItem(currentItem + 1);
             } else {
-                // 설문조사 화면으로 이동
+                // 마지막 슬라이드에서 시작하기
+                completeOnboarding();
                 startActivity(new Intent(this, SurveyActivity.class));
+                finish();
             }
         });
         
         btnSkip.setOnClickListener(v -> {
-            // 온보딩 완료 표시
-            SharedPreferences prefs = getSharedPreferences("r2_prefs", MODE_PRIVATE);
-            prefs.edit().putBoolean("onboarding_completed", true).apply();
-            
+            completeOnboarding();
             startActivity(new Intent(this, MainActivity.class));
             finish();
         });
     }
     
-    private void updateStep(int step) {
-        currentStep = step;
-        
-        // Progress dots 업데이트
-        progressDot1.setBackgroundTintList(getColorStateList(
-            step >= 1 ? R.color.tds_blue_400 : R.color.tds_text_tertiary));
-        progressDot2.setBackgroundTintList(getColorStateList(
-            step >= 2 ? R.color.tds_blue_400 : R.color.tds_text_tertiary));
-        progressDot3.setBackgroundTintList(getColorStateList(
-            step >= 3 ? R.color.tds_blue_400 : R.color.tds_text_tertiary));
-        
-        // Content 업데이트
-        switch (step) {
-            case 1:
-                titleText.setText("R²에 오신 것을 환영합니다");
-                descriptionText.setText("R²는 수익률보다 리스크 관리 훈련에 초점을 둔 모의투자 앱입니다.\n\n실제 돈 없이도 거래 감각을 키우고, 위험을 관리하는 방법을 배울 수 있습니다.");
-                btnNext.setText("다음");
-                break;
-            case 2:
-                titleText.setText("실시간 리스크 모니터링");
-                descriptionText.setText("모든 거래에서 실시간으로 위험도를 평가하고, 위험한 상황을 미리 감지합니다.\n\nRisk Score를 통해 안전한 거래를 유지하세요.");
-                btnNext.setText("다음");
-                break;
-            case 3:
-                titleText.setText("AI 코치와 함께 성장하세요");
-                descriptionText.setText("거래 패턴을 분석하고 개선점을 제안하는 AI 코치가 함께합니다.\n\n반복되는 실수를 피하고, 더 나은 트레이더가 되세요.");
-                btnNext.setText("시작하기");
-                break;
+    private void updateIndicators(int position) {
+        for (int i = 0; i < indicators.length; i++) {
+            if (i == position) {
+                indicators[i].setBackgroundResource(R.drawable.indicator_active);
+                indicators[i].getLayoutParams().width = (int) (32 * getResources().getDisplayMetrics().density);
+            } else {
+                indicators[i].setBackgroundResource(R.drawable.indicator_inactive);
+                indicators[i].getLayoutParams().width = (int) (8 * getResources().getDisplayMetrics().density);
+            }
+            indicators[i].requestLayout();
         }
+    }
+    
+    private void updateButtons(int position) {
+        if (position == TOTAL_SLIDES - 1) {
+            btnNext.setText("시작하기");
+            btnSkip.setVisibility(View.GONE);
+        } else {
+            btnNext.setText("다음");
+            btnSkip.setVisibility(View.VISIBLE);
+        }
+    }
+    
+    private void completeOnboarding() {
+        SharedPreferences prefs = getSharedPreferences("r2_prefs", MODE_PRIVATE);
+        prefs.edit().putBoolean("onboarding_completed", true).apply();
     }
 }
 

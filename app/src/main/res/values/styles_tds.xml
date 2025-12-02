@@ -1,65 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- TDS 기반 스타일 시스템 -->
+    <!-- Premium Dark Tech Style System -->
     
-    <!-- Typography (다크 모드용 - 토스 스타일) -->
+    <!-- Typography (Modern & Crisp) -->
     <style name="TDS_Text_Display">
-        <item name="android:textSize">@dimen/tds_text_display</item>
+        <item name="android:textSize">28sp</item>
         <item name="android:textColor">@color/tds_text_primary_dark</item>
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:letterSpacing">-0.02</item>
+        <item name="android:shadowColor">#40000000</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">2</item>
+        <item name="android:shadowRadius">4</item>
     </style>
     
+    <style name="TDS_Text_Subtitle1">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/tds_text_primary_dark</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.01</item>
+    </style>
+
     <style name="TDS_Text_Title1">
-        <item name="android:textSize">@dimen/tds_text_title1</item>
+        <item name="android:textSize">22sp</item>
         <item name="android:textColor">@color/tds_text_primary_dark</item>
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:letterSpacing">-0.01</item>
     </style>
     
     <style name="TDS_Text_Title2">
-        <item name="android:textSize">@dimen/tds_text_title2</item>
+        <item name="android:textSize">18sp</item>
         <item name="android:textColor">@color/tds_text_primary_dark</item>
         <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0</item>
     </style>
     
     <style name="TDS_Text_Title3">
-        <item name="android:textSize">@dimen/tds_text_title3</item>
+        <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/tds_text_primary_dark</item>
         <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.01</item>
     </style>
     
     <style name="TDS_Text_Body1">
-        <item name="android:textSize">@dimen/tds_text_body1</item>
+        <item name="android:textSize">15sp</item>
         <item name="android:textColor">@color/tds_text_secondary_dark</item>
         <item name="android:fontFamily">sans-serif</item>
+        <item name="android:lineSpacingExtra">4dp</item>
     </style>
     
     <style name="TDS_Text_Body2">
-        <item name="android:textSize">@dimen/tds_text_body2</item>
+        <item name="android:textSize">13sp</item>
         <item name="android:textColor">@color/tds_text_tertiary_dark</item>
         <item name="android:fontFamily">sans-serif</item>
+        <item name="android:lineSpacingExtra">3dp</item>
     </style>
     
     <style name="TDS_Text_Caption">
-        <item name="android:textSize">@dimen/tds_text_caption</item>
+        <item name="android:textSize">11sp</item>
         <item name="android:textColor">@color/tds_text_tertiary_dark</item>
-        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.02</item>
     </style>
     
-    <!-- Card Styles (토스 스타일 - 더 세련된 그림자와 테두리) -->
+    <!-- Card Styles (Premium Surface) -->
     <style name="TDS_Card">
         <item name="cardCornerRadius">16dp</item>
         <item name="cardElevation">0dp</item>
         <item name="cardBackgroundColor">@color/tds_card_background</item>
         <item name="strokeWidth">1dp</item>
         <item name="strokeColor">@color/tds_dark_border</item>
-        <item name="contentPadding">@dimen/tds_spacing_5</item>
+        <item name="contentPadding">20dp</item>
+    </style>
+
+    <style name="TDS_Card_Glass">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="cardBackgroundColor">@color/glass_surface</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="strokeColor">@color/glass_border</item>
+        <item name="contentPadding">20dp</item>
     </style>
     
     <style name="TDS_Card_Elevated">
+        <item name="cardCornerRadius">16dp</item>
         <item name="cardElevation">8dp</item>
         <item name="cardBackgroundColor">@color/tds_card_background_elevated</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="android:outlineAmbientShadowColor">#000000</item>
+        <item name="android:outlineSpotShadowColor">#000000</item>
     </style>
     
     <style name="TDS_Card_Interactive">
@@ -70,45 +99,70 @@
         <item name="strokeColor">@color/tds_dark_border</item>
         <item name="android:foreground">?attr/selectableItemBackground</item>
     </style>
+
+    <style name="TDS_Card_Popup" parent="TDS_Card_Elevated">
+        <item name="cardBackgroundColor">@color/tds_dark_surface_elevated</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="strokeColor">@color/tds_dark_border</item>
+        <item name="cardElevation">12dp</item>
+    </style>
     
-    <!-- Button Styles (Material2 호환) -->
+    <!-- Button Styles (Neon Glow Effect) -->
     <style name="TDS_Button" parent="Widget.MaterialComponents.Button">
-        <item name="android:minHeight">@dimen/tds_button_height_medium</item>
-        <item name="cornerRadius">@dimen/tds_radius_medium</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="cornerRadius">12dp</item>
         <item name="android:fontFamily">sans-serif-medium</item>
-        <item name="android:textSize">@dimen/tds_text_body1</item>
-        <item name="elevation">@dimen/tds_elevation_button</item>
+        <item name="android:textSize">15sp</item>
+        <item name="elevation">0dp</item>
         <item name="android:stateListAnimator">@null</item>
         <item name="backgroundTint">@color/tds_blue_500</item>
         <item name="android:textColor">#FFFFFF</item>
+        <item name="android:letterSpacing">0.02</item>
     </style>
     
     <style name="TDS_Button_Primary" parent="TDS_Button">
         <item name="backgroundTint">@color/tds_blue_500</item>
         <item name="android:textColor">#FFFFFF</item>
+        <!-- Future: Add gradient drawable here -->
     </style>
     
     <style name="TDS_Button_Secondary" parent="Widget.MaterialComponents.Button.OutlinedButton">
-        <item name="android:minHeight">@dimen/tds_button_height_medium</item>
-        <item name="cornerRadius">@dimen/tds_radius_medium</item>
-        <item name="strokeColor">@color/tds_gray_300</item>
-        <item name="android:textColor">#d1d4dc</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="strokeColor">@color/tds_dark_border</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="android:textColor">@color/tds_text_primary_dark</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="backgroundTint">@color/transparent</item>
+    </style>
+
+    <style name="TDS_Button_Text" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:minHeight">48dp</item>
+        <item name="cornerRadius">8dp</item>
+        <item name="android:textColor">@color/tds_text_secondary_dark</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0</item>
     </style>
     
     <style name="TDS_Button_Large">
-        <item name="android:minHeight">@dimen/tds_button_height_large</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:textSize">16sp</item>
+        <item name="cornerRadius">16dp</item>
     </style>
     
-    <!-- TextField Styles (Material2 호환) -->
+    <!-- TextField Styles (Modern Input) -->
     <style name="TDS_TextField" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-        <item name="boxCornerRadiusTopStart">@dimen/tds_radius_medium</item>
-        <item name="boxCornerRadiusTopEnd">@dimen/tds_radius_medium</item>
-        <item name="boxCornerRadiusBottomStart">@dimen/tds_radius_medium</item>
-        <item name="boxCornerRadiusBottomEnd">@dimen/tds_radius_medium</item>
-        <item name="boxStrokeColor">@color/tds_gray_300</item>
-        <item name="hintTextColor">@color/tds_gray_500</item>
-        <item name="android:textColorHint">#787b86</item>
-        <item name="android:textColor">#d1d4dc</item>
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+        <item name="boxStrokeColor">@color/tds_dark_border</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxBackgroundColor">@color/tds_dark_surface_elevated</item>
+        <item name="hintTextColor">@color/tds_text_tertiary_dark</item>
+        <item name="android:textColorHint">@color/tds_text_tertiary_dark</item>
+        <item name="android:textColor">@color/tds_text_primary_dark</item>
+        <item name="endIconTint">@color/tds_text_tertiary_dark</item>
     </style>
 </resources>
-

@@ -117,5 +117,15 @@ public class CoinPrice {
     public void setLow24h(double low24h) {
         this.low24h = low24h;
     }
+    @SerializedName("image")
+    private String image;
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
 }
 

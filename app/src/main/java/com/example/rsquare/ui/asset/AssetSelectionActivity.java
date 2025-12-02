@@ -18,6 +18,7 @@ import com.example.rsquare.ui.trading.TradingActivity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 자산·모드 선택 화면 Activity
@@ -29,11 +30,13 @@ public class AssetSelectionActivity extends BaseActivity {
     private RecyclerView assetRecycler;
     private Button btnStartTrading;
     
-    private String selectedMode = null; // "FUTURES" or "STOCK"
+    private String selectedMode = null; // "FUTURES" or "SPOT"
     private Position selectedAsset = null;
     
     private AssetCardAdapter adapter;
     
+    private android.widget.ImageButton btnBack;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,9 +66,13 @@ public class AssetSelectionActivity extends BaseActivity {
         
         assetRecycler = findViewById(R.id.asset_recycler);
         btnStartTrading = findViewById(R.id.bottom_action);
+        btnBack = findViewById(R.id.btn_back);
     }
     
     private void setupListeners() {
+        // 뒤로가기 버튼
+        btnBack.setOnClickListener(v -> finish());
+
         // CardView를 클릭 가능하게 설정
         cardFutures.setClickable(true);
         cardFutures.setFocusable(true);
@@ -78,9 +85,9 @@ public class AssetSelectionActivity extends BaseActivity {
             updateModeSelection();
         });
         
-        // 주식 모의투자 모드 선택
+        // 코인 현물 모드 선택
         cardStock.setOnClickListener(v -> {
-            selectedMode = "STOCK";
+            selectedMode = "SPOT";
             updateModeSelection();
         });
         
@@ -109,7 +116,7 @@ public class AssetSelectionActivity extends BaseActivity {
                 getColor(R.color.tds_blue_400)));
             cardStock.setCardBackgroundColor(android.content.res.ColorStateList.valueOf(
                 getColor(R.color.tds_bg_dark)));
-        } else if ("STOCK".equals(selectedMode)) {
+        } else if ("SPOT".equals(selectedMode)) {
             cardFutures.setCardBackgroundColor(android.content.res.ColorStateList.valueOf(
                 getColor(R.color.tds_bg_dark)));
             cardStock.setCardBackgroundColor(android.content.res.ColorStateList.valueOf(
@@ -123,7 +130,7 @@ public class AssetSelectionActivity extends BaseActivity {
         updateStartButton();
         
         // 선택 피드백
-        Toast.makeText(this, selectedMode.equals("FUTURES") ? "코인 선물 모드 선택됨" : "주식 모의투자 모드 선택됨", 
+        Toast.makeText(this, selectedMode.equals("FUTURES") ? "코인 선물 모드 선택됨" : "코인 현물 모드 선택됨", 
             Toast.LENGTH_SHORT).show();
     }
     
@@ -138,46 +145,160 @@ public class AssetSelectionActivity extends BaseActivity {
         assetRecycler.setAdapter(adapter);
     }
     
+    private com.example.rsquare.data.repository.MarketDataRepository repository;
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (repository != null) {
+            repository.stopWebSocket();
+        }
+    }
+
     private void loadAssets() {
-        // 샘플 자산 데이터 생성
-        List<Position> assets = new ArrayList<>();
+        // 로딩 표시 (필요시 추가)
         
-        // 코인 선물 모드인 경우
-        if ("FUTURES".equals(selectedMode)) {
-            Position btc = new Position();
-            btc.setSymbol("BTCUSDT");
-            btc.setEntryPrice(95836.0);
-            assets.add(btc);
-            
-            Position eth = new Position();
-            eth.setSymbol("ETHUSDT");
-            eth.setEntryPrice(3250.0);
-            assets.add(eth);
-            
-            Position ada = new Position();
-            ada.setSymbol("ADAUSDT");
-            ada.setEntryPrice(0.45);
-            assets.add(ada);
-        } 
-        // 주식 모드인 경우
-        else if ("STOCK".equals(selectedMode)) {
-            Position apple = new Position();
-            apple.setSymbol("AAPL");
-            apple.setEntryPrice(175.50);
-            assets.add(apple);
-            
-            Position tesla = new Position();
-            tesla.setSymbol("TSLA");
-            tesla.setEntryPrice(245.30);
-            assets.add(tesla);
-            
-            Position msft = new Position();
-            msft.setSymbol("MSFT");
-            msft.setEntryPrice(380.20);
-            assets.add(msft);
+        if (repository == null) {
+            repository = new com.example.rsquare.data.repository.MarketDataRepository();
         }
         
-        adapter.setAssets(assets);
+        // 1. 유효한 Binance 심볼 목록 먼저 조회
+        repository.getValidBinanceSymbols(new com.example.rsquare.data.repository.MarketDataRepository.OnValidSymbolsLoadedListener() {
+            @Override
+            public void onValidSymbolsLoaded(Set<String> validSymbols) {
+                if (isFinishing() || isDestroyed()) return;
+                
+                // 2. 코인 목록 조회
+                repository.getTopCoins(50, new com.example.rsquare.data.repository.MarketDataRepository.OnMarketDataLoadedListener() {
+                    @Override
+                    public void onMarketDataLoaded(List<com.example.rsquare.data.remote.model.CoinPrice> prices) {
+                        if (isFinishing() || isDestroyed()) return;
+
+                        List<Position> assets = new ArrayList<>();
+                        List<String> symbols = new ArrayList<>();
+                        
+                        for (com.example.rsquare.data.remote.model.CoinPrice price : prices) {
+                            // 심볼 변환 (예: btc -> BTCUSDT)
+                            String symbol = price.getSymbol().toUpperCase();
+                            
+                            // 스테이블 코인 제외
+                            if (symbol.equals("USDT") || symbol.equals("USDC") || 
+                                symbol.equals("DAI") || symbol.equals("FDUSD")) {
+                                continue;
+                            }
+                            
+                            if (!symbol.endsWith("USDT")) {
+                                symbol += "USDT";
+                            }
+                            
+                            // Binance에서 거래 가능한지 확인
+                            if (validSymbols != null && !validSymbols.contains(symbol)) {
+                                // android.util.Log.d("AssetSelection", "Skipping unsupported symbol: " + symbol);
+                                continue;
+                            }
+                            
+                            Position asset = new Position();
+                            asset.setSymbol(symbol);
+                            asset.setEntryPrice(price.getCurrentPrice());
+                            asset.setLogoUrl(price.getImage());
+                            
+                            assets.add(asset);
+                            symbols.add(symbol);
+                        }
+                        
+                        runOnUiThread(() -> {
+                            if (isFinishing() || isDestroyed()) return;
+
+                            if (adapter != null) {
+                                // 초기 가격 변동률 맵 생성
+                                java.util.Map<String, Double> initialChanges = new java.util.HashMap<>();
+                                for (com.example.rsquare.data.remote.model.CoinPrice price : prices) {
+                                    String symbol = price.getSymbol().toUpperCase();
+                                    if (!symbol.endsWith("USDT")) symbol += "USDT";
+                                    // 필터링된 심볼만 추가
+                                    if (symbols.contains(symbol)) {
+                                        initialChanges.put(symbol, price.getPriceChangePercentage24h());
+                                    }
+                                }
+                                
+                                adapter.setInitialPrices(initialChanges);
+                                adapter.setAssets(assets);
+                            }
+                            
+                            // 실시간 업데이트 구독
+                            if (!symbols.isEmpty()) {
+                                repository.subscribeToRealtimeUpdates(symbols, new com.example.rsquare.data.repository.MarketDataRepository.OnRealtimeUpdateListener() {
+                                    // Throttling을 위한 변수들
+                                    private final java.util.Map<String, Double> pendingPrices = new java.util.concurrent.ConcurrentHashMap<>();
+                                    private final java.util.Map<String, Double> pendingChanges = new java.util.concurrent.ConcurrentHashMap<>();
+                                    private final android.os.Handler updateHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+                                    private static final long UPDATE_INTERVAL_MS = 500; // 0.5초마다 업데이트
+                                    private final java.util.concurrent.atomic.AtomicBoolean isUpdateScheduled = new java.util.concurrent.atomic.AtomicBoolean(false);
+                                    
+                                    private final Runnable updateRunnable = new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            if (isFinishing() || isDestroyed()) {
+                                                isUpdateScheduled.set(false);
+                                                return;
+                                            }
+
+                                            if (adapter != null) {
+                                                for (String symbol : pendingPrices.keySet()) {
+                                                    Double price = pendingPrices.get(symbol);
+                                                    Double change = pendingChanges.get(symbol);
+                                                    if (price != null && change != null) {
+                                                        adapter.updatePrice(symbol, price, change);
+                                                    }
+                                                }
+                                                pendingPrices.clear();
+                                                pendingChanges.clear();
+                                            }
+                                            isUpdateScheduled.set(false);
+                                        }
+                                    };
+
+                                    @Override
+                                    public void onRealtimeUpdate(String coinId, double price, double changePercent) {
+                                        if (isFinishing() || isDestroyed()) return;
+
+                                        String symbol = coinId.toUpperCase();
+                                        if (!symbol.endsWith("USDT")) symbol += "USDT";
+                                        
+                                        pendingPrices.put(symbol, price);
+                                        pendingChanges.put(symbol, changePercent);
+                                        
+                                        if (isUpdateScheduled.compareAndSet(false, true)) {
+                                            updateHandler.postDelayed(updateRunnable, UPDATE_INTERVAL_MS);
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                    }
+                    
+                    @Override
+                    public void onError(String error) {
+                        if (isFinishing() || isDestroyed()) return;
+                        runOnUiThread(() -> {
+                            Toast.makeText(AssetSelectionActivity.this, 
+                                "자산 목록 로드 실패: " + error, Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                });
+            }
+            
+            @Override
+            public void onError(String error) {
+                if (isFinishing() || isDestroyed()) return;
+                runOnUiThread(() -> {
+                    Toast.makeText(AssetSelectionActivity.this, 
+                        "거래소 정보 로드 실패: " + error, Toast.LENGTH_SHORT).show();
+                    // 실패해도 일단 코인 목록은 로드 시도 (필터링 없이)
+                    // ... (fallback logic could be added here, but keeping it simple for now)
+                });
+            }
+        });
     }
     
     private void updateStartButton() {

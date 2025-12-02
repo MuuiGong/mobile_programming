@@ -78,16 +78,120 @@ public class TradingMonitorWorker extends Worker {
     private void checkPosition(Position position) {
         String coinId = getCoinIdFromSymbol(position.getSymbol());
         
+        if (coinId == null) {
+            Log.w(TAG, "Could not convert symbol to coinId: " + position.getSymbol());
+            return;
+        }
+        
         // 캐시된 가격 먼저 확인
         CoinPrice cachedPrice = marketDataRepository.getCachedPrice(coinId);
-        if (cachedPrice != null) {
+        if (cachedPrice != null && cachedPrice.getCurrentPrice() > 0) {
             double currentPrice = cachedPrice.getCurrentPrice();
-            evaluatePosition(position, currentPrice);
+            
+            Log.d(TAG, "Checking position " + position.getId() + 
+                ", Symbol: " + position.getSymbol() + 
+                ", CoinId: " + coinId + 
+                ", CurrentPrice: " + currentPrice +
+                ", TP: " + position.getTakeProfit() +
+                ", SL: " + position.getStopLoss());
+            
+            // PENDING 상태인 경우 진입 조건 체크
+            if ("PENDING".equals(position.getStatus())) {
+                checkPendingOrder(position, currentPrice);
+            } else {
+                // ACTIVE 상태인 경우 청산/TP/SL 체크
+                evaluatePosition(position, currentPrice);
+            }
         } else {
-            // 캐시에 없으면 API 호출 (동기적으로)
-            // 실제 프로덕션에서는 더 나은 동기화 방식 필요
-            Log.d(TAG, "Price not in cache for " + coinId);
+            // 캐시에 없으면 로그만 남기고 스킵 (다음 실행 시 다시 시도)
+            Log.d(TAG, "Price not in cache for " + coinId + " (symbol: " + position.getSymbol() + ")");
         }
+    }
+    
+    /**
+     * 대기 주문 체크 (Limit/Stop)
+     */
+    private void checkPendingOrder(Position position, double currentPrice) {
+        boolean triggered = false;
+        double entryPrice = position.getEntryPrice();
+        
+        if (position.isLong()) {
+            // 롱 포지션
+            // 1. Limit Buy: 현재가가 진입가보다 낮았다가 진입가 이하로 내려오면 체결? 
+            //    보통 Limit Buy는 현재가보다 낮은 가격에 걸어두고, 가격이 내려와서 닿으면 체결.
+            //    Stop Buy는 현재가보다 높은 가격에 걸어두고, 가격이 올라와서 닿으면 체결.
+            
+            // 여기서는 단순하게 "가격이 진입가에 도달하거나 더 유리해지면" 체결로 간주
+            // 하지만 PENDING으로 설정될 때의 가격을 모르므로, 
+            // "현재 가격이 진입가보다 낮거나 같으면" (Limit Buy 가정) 체결?
+            // 아니면 "현재 가격이 진입가보다 높거나 같으면" (Stop Buy 가정) 체결?
+            
+            // TradeExecutor에서 PENDING으로 설정된 로직:
+            // Math.abs(entryPrice - currentPrice) / currentPrice > 0.001
+            
+            // 사용자의 의도를 정확히 알 수 없으므로, "진입가에 도달"하면 체결로 단순화
+            // 즉, 진입가와의 차이가 매우 작거나, 
+            // Limit Buy (Low): Current <= Entry
+            // Stop Buy (High): Current >= Entry
+            
+            // 하지만 우리는 주문 당시의 가격을 모름.
+            // 따라서 단순히 "진입가 근처에 도달"했는지만 체크하거나,
+            // 아니면 더 정교하게 "교차"를 체크해야 함 (이전 가격 필요).
+            
+            // 여기서는 Worker가 주기적으로 돌므로 "교차"를 놓칠 수 있음.
+            // 따라서 "현재 가격이 진입가 조건을 만족"하는지로 판단.
+            
+            // 문제: Limit Buy인지 Stop Buy인지 구분할 필드가 없음.
+            // 해결: Position에 orderType 필드가 없으므로, 
+            // 일단은 "현재 가격이 진입가와 매우 가까우면" (0.1% 이내) 체결로 처리?
+            // 아니면, 사용자가 입력한 EP가 현재가보다 낮으면 Limit, 높으면 Stop으로 가정했어야 함.
+            
+            // TradeExecutor에서 status를 PENDING으로 설정할 때 orderType도 저장했으면 좋았겠지만,
+            // 지금은 "진입가에 도달했다"는 것을 "현재가와 진입가의 차이가 0.1% 이내"인 경우로 한정하거나,
+            // 아니면 단순히 "지나쳤으면" 체결로 봐야 함.
+            
+            // 개선된 로직:
+            // PENDING 상태일 때, 
+            // 1. 만약 현재가가 진입가보다 낮다면 (Limit Buy 대기 중이었거나, 이미 지나침) -> 체결 (더 싸게 사는 건 좋음)
+            // 2. 만약 현재가가 진입가보다 높다면 (Stop Buy 대기 중이었거나, 아직 안 옴) -> 
+            //    이건 모호함. Limit Buy라면 아직 안 온 거고, Stop Buy라면 이미 지난 거임.
+            
+            // 안전한 접근: "현재 가격이 진입가와 0.1% 이내로 근접하면 체결"
+            double diffPercent = Math.abs(currentPrice - entryPrice) / entryPrice;
+            if (diffPercent <= 0.001) {
+                triggered = true;
+            }
+            
+        } else {
+            // 숏 포지션
+            // Limit Sell (High): Current >= Entry -> 체결 (더 비싸게 파는 건 좋음)
+            // Stop Sell (Low): Current <= Entry
+            
+            // 마찬가지로 "현재 가격이 진입가와 0.1% 이내로 근접하면 체결"
+            double diffPercent = Math.abs(currentPrice - entryPrice) / entryPrice;
+            if (diffPercent <= 0.001) {
+                triggered = true;
+            }
+        }
+        
+        if (triggered) {
+            Log.d(TAG, "Pending order triggered! Position " + position.getId() + 
+                ", Entry: " + entryPrice + ", Current: " + currentPrice);
+            
+            activatePosition(position);
+        }
+    }
+    
+    /**
+     * 포지션 활성화
+     */
+    private void activatePosition(Position position) {
+        position.setStatus("ACTIVE");
+        position.setOpenTime(new Date()); // 체결 시간으로 업데이트
+        
+        tradingRepository.updatePositionSync(position);
+        
+        notificationHelper.notifyOrderFilled(position);
     }
     
     /**
@@ -109,7 +213,7 @@ public class TradingMonitorWorker extends Worker {
         // 1. TP 도달 체크
         if (position.isTakeProfitReached(currentPrice)) {
             Log.d(TAG, "Take profit reached for position " + position.getId());
-            closePosition(position, currentPrice, TradeHistory.TradeType.CLOSE_TP, "TP_HIT");
+            tradingRepository.closePositionSync(position.getId(), currentPrice, TradeHistory.TradeType.CLOSE_TP, "TP_HIT");
             notificationHelper.notifyTPReached(position);
             return;
         }
@@ -117,7 +221,7 @@ public class TradingMonitorWorker extends Worker {
         // 2. SL 도달 체크
         if (position.isStopLossReached(currentPrice)) {
             Log.d(TAG, "Stop loss reached for position " + position.getId());
-            closePosition(position, currentPrice, TradeHistory.TradeType.CLOSE_SL, "SL_HIT");
+            tradingRepository.closePositionSync(position.getId(), currentPrice, TradeHistory.TradeType.CLOSE_SL, "SL_HIT");
             notificationHelper.notifySLReached(position);
             return;
         }
@@ -201,7 +305,7 @@ public class TradingMonitorWorker extends Worker {
             if (MarginCalculator.shouldLiquidate(marginRatio)) {
                 Log.w(TAG, "Liquidation triggered! Position " + position.getId() + 
                     ", Margin ratio: " + marginRatio + "%, Mode: " + marginMode);
-                closePosition(position, currentPrice, TradeHistory.TradeType.CLOSE_SL, "MARGIN_CALL_LIQUIDATION");
+                tradingRepository.closePositionSync(position.getId(), currentPrice, TradeHistory.TradeType.CLOSE_SL, "MARGIN_CALL_LIQUIDATION");
                 notificationHelper.notifyLiquidation(position, liquidationPrice);
                 return;
             }
@@ -229,7 +333,7 @@ public class TradingMonitorWorker extends Worker {
             
             if (maxDurationMs > 0 && durationMs >= maxDurationMs) {
                 Log.d(TAG, "Position timeout for position " + position.getId());
-                closePosition(position, currentPrice, TradeHistory.TradeType.CLOSE_SL, "TIMEOUT");
+                tradingRepository.closePositionSync(position.getId(), currentPrice, TradeHistory.TradeType.CLOSE_SL, "TIMEOUT");
                 notificationHelper.notifyTimeout(position);
                 return;
             }
@@ -308,50 +412,36 @@ public class TradingMonitorWorker extends Worker {
     private void closeAllPositions(long userId, double currentPrice, String reason) {
         List<Position> activePositions = tradingRepository.getActivePositionsSync(userId);
         for (Position pos : activePositions) {
-            closePosition(pos, currentPrice, TradeHistory.TradeType.CLOSE_SL, reason);
+            tradingRepository.closePositionSync(pos.getId(), currentPrice, TradeHistory.TradeType.CLOSE_SL, reason);
         }
     }
     
     /**
      * 포지션 청산 (프롬프트 요구사항 반영)
      */
-    private void closePosition(Position position, double closedPrice, TradeHistory.TradeType closeType, String exitReason) {
-        // 포지션 업데이트
-        position.setClosed(true);
-        position.setCloseTime(new Date());
-        position.setClosedPrice(closedPrice);
-        position.setExitReason(exitReason);
-        
-        double pnl = position.calculateUnrealizedPnL(closedPrice);
-        position.setPnl(pnl);
-        
-        // DB 업데이트 (동기)
-        tradingRepository.updatePositionSync(position);
-        
-        // 거래 히스토리 기록
-        TradeHistory tradeHistory = new TradeHistory();
-        tradeHistory.setPositionId(position.getId());
-        tradeHistory.setSymbol(position.getSymbol());
-        tradeHistory.setType(closeType);
-        tradeHistory.setPrice(closedPrice);
-        tradeHistory.setQuantity(position.getQuantity());
-        tradeHistory.setPnl(pnl);
-        tradingRepository.insertTradeHistorySync(tradeHistory);
-        
-        // 잔고 업데이트
-        userRepository.addToBalance(position.getUserId(), pnl);
-        
-        Log.d(TAG, String.format(
-            "Position closed: %d, Exit: %s, PnL: %.2f, Price: %.2f",
-            position.getId(), exitReason, pnl, closedPrice
-        ));
-    }
+
     
     /**
-     * 심볼을 CoinGecko ID로 변환
+     * 심볼을 CoinGecko ID로 변환 (MainActivity와 동일한 매핑)
      */
     private String getCoinIdFromSymbol(String symbol) {
-        // 간단한 매핑 (실제로는 더 복잡한 매핑 필요)
+        // Binance 심볼 -> CoinGecko ID 매핑
+        java.util.Map<String, String> symbolToCoinId = new java.util.HashMap<>();
+        symbolToCoinId.put("BTCUSDT", "bitcoin");
+        symbolToCoinId.put("ETHUSDT", "ethereum");
+        symbolToCoinId.put("ADAUSDT", "cardano");
+        symbolToCoinId.put("SOLUSDT", "solana");
+        symbolToCoinId.put("XRPUSDT", "ripple");
+        symbolToCoinId.put("DOTUSDT", "polkadot");
+        symbolToCoinId.put("DOGEUSDT", "dogecoin");
+        symbolToCoinId.put("AVAXUSDT", "avalanche-2");
+        
+        String coinId = symbolToCoinId.get(symbol);
+        if (coinId != null) {
+            return coinId;
+        }
+        
+        // 매핑에 없으면 기존 로직 사용
         switch (symbol.toUpperCase()) {
             case "BTC":
             case "BITCOIN":
@@ -378,6 +468,7 @@ public class TradingMonitorWorker extends Worker {
             case "AVALANCHE":
                 return "avalanche-2";
             default:
+                Log.w(TAG, "Unknown symbol: " + symbol + ", using lowercase as coinId");
                 return symbol.toLowerCase();
         }
     }

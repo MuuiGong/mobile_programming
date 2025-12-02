@@ -51,6 +51,16 @@ public class Position {
     private double maxDrawdown; // 최대 낙폭
     private double rrRatio; // R:R 비율
     private String marginMode; // 마진 모드: "ISOLATED" or "CROSS"
+    private String status; // "PENDING", "ACTIVE", "CLOSED"
+    private String logoUrl; // 로고 이미지 URL
+
+    public String getLogoUrl() {
+        return logoUrl;
+    }
+
+    public void setLogoUrl(String logoUrl) {
+        this.logoUrl = logoUrl;
+    }
     
     public Position() {
         this.openTime = new Date();
@@ -62,6 +72,7 @@ public class Position {
         this.timeframe = "1H";
         this.maxDrawdown = 0.0;
         this.marginMode = "CROSS"; // 기본값: Cross 마진 모드
+        this.status = "ACTIVE"; // 기본값: 활성
     }
     
     /**
@@ -76,8 +87,8 @@ public class Position {
             (currentPrice - entryPrice) : 
             (entryPrice - currentPrice);
         
-        // 레버리지 적용
-        return priceDiff * quantity * leverage;
+        // 레버리지 적용 (제거됨: PnL은 수량 * 가격차이)
+        return priceDiff * quantity;
     }
     
     /**
@@ -382,6 +393,14 @@ public class Position {
     
     public void setMarginMode(String marginMode) {
         this.marginMode = marginMode;
+    }
+    
+    public String getStatus() {
+        return status;
+    }
+    
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
 

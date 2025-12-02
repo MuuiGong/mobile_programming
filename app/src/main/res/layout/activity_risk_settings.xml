@@ -12,322 +12,383 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="@dimen/tds_spacing_4">
 
         <!-- Header -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginBottom="24dp">
+            android:layout_marginBottom="@dimen/tds_spacing_5">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="고급 리스크 관리"
-                android:textSize="28sp"
-                android:textColor="@color/tds_text_primary"
+                style="@style/TDS_Text_Title1"
                 android:textStyle="bold"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="@dimen/tds_spacing_2" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="손실 한도 및 알림 설정을 관리하세요"
-                android:textSize="14sp"
+                style="@style/TDS_Text_Body2"
                 android:textColor="@color/tds_text_secondary" />
         </LinearLayout>
 
-        <!-- Daily Loss Limit -->
-        <androidx.cardview.widget.CardView
+        <!-- Risk Gauge Visualization -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardBackgroundColor="@color/tds_bg_dark"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp">
+            android:gravity="center"
+            android:layout_marginBottom="@dimen/tds_spacing_5">
+            
+            <com.example.rsquare.ui.common.RiskGaugeView
+                android:id="@+id/risk_gauge_view"
+                android:layout_width="200dp"
+                android:layout_height="200dp" />
+        </LinearLayout>
+
+        <!-- Risk Per Trade -->
+        <androidx.cardview.widget.CardView
+            style="@style/TDS_Card_Glass"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/tds_spacing_4">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:padding="24dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="일일 손실 한도"
-                    android:textSize="18sp"
-                    android:textColor="@color/tds_text_primary"
+                    android:text="거래당 리스크 (%)"
+                    style="@style/TDS_Text_Subtitle1"
                     android:textStyle="bold"
-                    android:layout_marginBottom="8dp" />
+                    android:layout_marginBottom="@dimen/tds_spacing_2" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="설정한 금액 이상 손실이 발생하면 해당 일자 트레이딩이 차단됩니다."
-                    android:textSize="12sp"
+                    android:text="한 번의 거래에서 감수할 최대 자산 비율을 설정합니다. (권장: 1~2%)"
+                    style="@style/TDS_Text_Caption"
                     android:textColor="@color/tds_text_secondary"
-                    android:layout_marginBottom="16dp" />
+                    android:layout_marginBottom="@dimen/tds_spacing_4" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:background="@drawable/tds_input_background"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="12dp">
 
                     <EditText
-                        android:id="@+id/daily_loss_limit"
+                        android:id="@+id/risk_per_trade"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
-                        android:layout_weight="1"
-                        android:hint="500"
-                        android:textSize="16sp"
-                        android:textColor="@color/tds_text_primary"
-                        android:background="@drawable/edit_text_background"
-                        android:padding="12dp"
-                        android:inputType="numberDecimal"
-                        android:layout_marginEnd="12dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="USD"
-                        android:textSize="16sp"
-                        android:textColor="@color/tds_text_secondary" />
-                </LinearLayout>
-
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/enable_daily_loss_limit"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="일일 손실 한도 활성화"
-                    android:textSize="14sp"
-                    android:textColor="@color/tds_text_primary"
-                    android:layout_marginTop="16dp" />
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-        <!-- Max Loss Percentage -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardBackgroundColor="@color/tds_bg_dark"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="20dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="계좌별 최대 허용 손실률"
-                    android:textSize="18sp"
-                    android:textColor="@color/tds_text_primary"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="8dp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="전체 자산 대비 손실률이 이 값을 초과하면 알림이 전송됩니다."
-                    android:textSize="12sp"
-                    android:textColor="@color/tds_text_secondary"
-                    android:layout_marginBottom="16dp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-                    <EditText
-                        android:id="@+id/max_loss_percentage"
-                        android:layout_width="0dp"
-                        android:layout_height="48dp"
                         android:layout_weight="1"
-                        android:hint="10"
-                        android:textSize="16sp"
-                        android:textColor="@color/tds_text_primary"
-                        android:background="@drawable/edit_text_background"
-                        android:padding="12dp"
+                        android:hint="2.0"
                         android:inputType="numberDecimal"
-                        android:layout_marginEnd="12dp" />
+                        android:background="@null"
+                        android:textColor="@color/tds_text_primary"
+                        android:textColorHint="@color/tds_text_tertiary"
+                        android:layout_marginEnd="@dimen/tds_spacing_3" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="%"
-                        android:textSize="16sp"
+                        style="@style/TDS_Text_Body1"
                         android:textColor="@color/tds_text_secondary" />
                 </LinearLayout>
-
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/enable_max_loss_percentage"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="최대 손실률 알림 활성화"
-                    android:textSize="14sp"
-                    android:textColor="@color/tds_text_primary"
-                    android:layout_marginTop="16dp" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Target Profit Notification -->
+        <!-- Daily Loss Limit -->
         <androidx.cardview.widget.CardView
+            style="@style/TDS_Card_Glass"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardBackgroundColor="@color/tds_bg_dark"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp">
+            android:layout_marginBottom="@dimen/tds_spacing_4">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:padding="24dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="목표 수익 알림"
-                    android:textSize="18sp"
-                    android:textColor="@color/tds_text_primary"
+                    android:text="일일 손실 한도"
+                    style="@style/TDS_Text_Subtitle1"
                     android:textStyle="bold"
-                    android:layout_marginBottom="8dp" />
+                    android:layout_marginBottom="@dimen/tds_spacing_2" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="목표 수익에 도달하면 알림을 받고, 부분 청산 또는 전량 청산을 선택할 수 있습니다."
-                    android:textSize="12sp"
+                    android:text="설정한 금액 이상 손실이 발생하면 해당 일자 트레이딩이 차단됩니다."
+                    style="@style/TDS_Text_Caption"
                     android:textColor="@color/tds_text_secondary"
-                    android:layout_marginBottom="16dp" />
+                    android:layout_marginBottom="@dimen/tds_spacing_4" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:background="@drawable/tds_input_background"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="12dp">
 
                     <EditText
-                        android:id="@+id/target_profit"
+                        android:id="@+id/daily_loss_limit"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:hint="1000"
-                        android:textSize="16sp"
-                        android:textColor="@color/tds_text_primary"
-                        android:background="@drawable/edit_text_background"
-                        android:padding="12dp"
+                        android:hint="500"
                         android:inputType="numberDecimal"
-                        android:layout_marginEnd="12dp" />
+                        android:background="@null"
+                        android:textColor="@color/tds_text_primary"
+                        android:textColorHint="@color/tds_text_tertiary"
+                        android:layout_marginEnd="@dimen/tds_spacing_3" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="USD"
-                        android:textSize="16sp"
+                        style="@style/TDS_Text_Body1"
                         android:textColor="@color/tds_text_secondary" />
                 </LinearLayout>
 
                 <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/enable_target_profit"
-                    android:layout_width="wrap_content"
+                    android:id="@+id/enable_daily_loss_limit"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="목표 수익 알림 활성화"
-                    android:textSize="14sp"
-                    android:textColor="@color/tds_text_primary"
-                    android:layout_marginTop="16dp" />
+                    android:text="일일 손실 한도 활성화"
+                    style="@style/TDS_Text_Body2"
+                    android:layout_marginTop="@dimen/tds_spacing_4" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Cool Down Mode -->
+        <!-- Max Loss Percentage -->
         <androidx.cardview.widget.CardView
+            style="@style/TDS_Card_Glass"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardBackgroundColor="@color/tds_bg_dark"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp">
+            android:layout_marginBottom="@dimen/tds_spacing_4">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:padding="24dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="쿨다운 모드"
-                    android:textSize="18sp"
-                    android:textColor="@color/tds_text_primary"
+                    android:text="계좌별 최대 허용 손실률"
+                    style="@style/TDS_Text_Subtitle1"
                     android:textStyle="bold"
-                    android:layout_marginBottom="8dp" />
+                    android:layout_marginBottom="@dimen/tds_spacing_2" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="손실 한도를 초과하면 일정 시간 동안 트레이딩이 차단됩니다."
-                    android:textSize="12sp"
+                    android:text="전체 자산 대비 손실률이 이 값을 초과하면 알림이 전송됩니다."
+                    style="@style/TDS_Text_Caption"
                     android:textColor="@color/tds_text_secondary"
-                    android:layout_marginBottom="16dp" />
+                    android:layout_marginBottom="@dimen/tds_spacing_4" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:background="@drawable/tds_input_background"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="12dp">
+
+                    <EditText
+                        android:id="@+id/max_loss_percentage"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="10"
+                        android:inputType="numberDecimal"
+                        android:background="@null"
+                        android:textColor="@color/tds_text_primary"
+                        android:textColorHint="@color/tds_text_tertiary"
+                        android:layout_marginEnd="@dimen/tds_spacing_3" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="%"
+                        style="@style/TDS_Text_Body1"
+                        android:textColor="@color/tds_text_secondary" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/enable_max_loss_percentage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="최대 손실률 알림 활성화"
+                    style="@style/TDS_Text_Body2"
+                    android:layout_marginTop="@dimen/tds_spacing_4" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Target Profit Notification -->
+        <androidx.cardview.widget.CardView
+            style="@style/TDS_Card_Glass"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/tds_spacing_4">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="목표 수익 알림"
+                    style="@style/TDS_Text_Subtitle1"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="@dimen/tds_spacing_2" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="목표 수익에 도달하면 알림을 받고, 부분 청산 또는 전량 청산을 선택할 수 있습니다."
+                    style="@style/TDS_Text_Caption"
+                    android:textColor="@color/tds_text_secondary"
+                    android:layout_marginBottom="@dimen/tds_spacing_4" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/tds_input_background"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="12dp">
+
+                    <EditText
+                        android:id="@+id/target_profit"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="1000"
+                        android:inputType="numberDecimal"
+                        android:background="@null"
+                        android:textColor="@color/tds_text_primary"
+                        android:textColorHint="@color/tds_text_tertiary"
+                        android:layout_marginEnd="@dimen/tds_spacing_3" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="USD"
+                        style="@style/TDS_Text_Body1"
+                        android:textColor="@color/tds_text_secondary" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/enable_target_profit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="목표 수익 알림 활성화"
+                    style="@style/TDS_Text_Body2"
+                    android:layout_marginTop="@dimen/tds_spacing_4" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Cool Down Mode -->
+        <androidx.cardview.widget.CardView
+            style="@style/TDS_Card_Glass"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/tds_spacing_4">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="쿨다운 모드"
+                    style="@style/TDS_Text_Subtitle1"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="@dimen/tds_spacing_2" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="손실 한도를 초과하면 일정 시간 동안 트레이딩이 차단됩니다."
+                    style="@style/TDS_Text_Caption"
+                    android:textColor="@color/tds_text_secondary"
+                    android:layout_marginBottom="@dimen/tds_spacing_4" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/tds_input_background"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="12dp">
 
                     <EditText
                         android:id="@+id/cooldown_duration"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:hint="60"
-                        android:textSize="16sp"
-                        android:textColor="@color/tds_text_primary"
-                        android:background="@drawable/edit_text_background"
-                        android:padding="12dp"
                         android:inputType="number"
-                        android:layout_marginEnd="12dp" />
+                        android:background="@null"
+                        android:textColor="@color/tds_text_primary"
+                        android:textColorHint="@color/tds_text_tertiary"
+                        android:layout_marginEnd="@dimen/tds_spacing_3" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="분"
-                        android:textSize="16sp"
+                        style="@style/TDS_Text_Body1"
                         android:textColor="@color/tds_text_secondary" />
                 </LinearLayout>
 
                 <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/enable_cooldown"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="쿨다운 모드 활성화"
-                    android:textSize="14sp"
-                    android:textColor="@color/tds_text_primary"
-                    android:layout_marginTop="16dp" />
+                    style="@style/TDS_Text_Body2"
+                    android:layout_marginTop="@dimen/tds_spacing_4" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
         <!-- Save Button -->
         <Button
             android:id="@+id/btn_save_risk_settings"
+            style="@style/TDS_Button_Primary"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:text="설정 저장"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:background="@drawable/btn_primary"
-            android:textColor="@color/tds_text_primary" />
+            android:layout_height="wrap_content"
+            android:text="설정 저장" />
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
 

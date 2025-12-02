@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="@dimen/tds_spacing_5">
+
+    <!-- Icon Area -->
+    <View
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:background="@drawable/circle_background"
+        android:backgroundTint="@color/tds_blue_500"
+        android:alpha="0.2"
+        android:layout_marginBottom="@dimen/tds_spacing_5" />
+
+    <!-- Title -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="R²에 오신 것을\n환영합니다"
+        style="@style/TDS_Text_Title1"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="@dimen/tds_spacing_4" />
+
+    <!-- Description -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="리스크 관리에 초점을 둔\n스마트한 모의투자"
+        style="@style/TDS_Text_Body1"
+        android:textColor="@color/tds_text_secondary"
+        android:gravity="center"
+        android:lineSpacingExtra="4dp"
+        android:layout_marginBottom="@dimen/tds_spacing_3" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="실제 돈 없이 거래 감각을 키우세요"
+        style="@style/TDS_Text_Body2"
+        android:textColor="@color/tds_text_tertiary"
+        android:gravity="center" />
+
+</LinearLayout>

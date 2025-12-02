@@ -41,7 +41,8 @@ public class TradeHistory {
         BUY,
         SELL,
         CLOSE_TP,
-        CLOSE_SL
+        CLOSE_SL,
+        CLOSE_MARKET
     }
     
     public TradeHistory() {

@@ -14,6 +14,8 @@ import com.example.rsquare.data.local.entity.User;
  */
 public class UserRepository {
     
+    public static final long TEST_USER_ID = 1L;
+    
     private final UserDao userDao;
     
     public UserRepository(Context context) {

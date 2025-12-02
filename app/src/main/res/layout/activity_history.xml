@@ -11,7 +11,7 @@
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="?attr/actionBarSize"
         android:background="@color/tds_bg_dark"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -28,16 +28,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="@dimen/tds_spacing_4">
 
             <!-- 통계 카드 -->
             <androidx.cardview.widget.CardView
+                style="@style/TDS_Card_Glass"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="@color/tds_bg_dark"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp">
+                android:layout_marginBottom="@dimen/tds_spacing_4">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -49,23 +47,22 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="통계 요약"
-                        android:textSize="16sp"
-                        android:textColor="@color/tds_text_primary"
+                        style="@style/TDS_Text_Subtitle1"
                         android:textStyle="bold"
-                        android:layout_marginBottom="12dp" />
+                        android:layout_marginBottom="@dimen/tds_spacing_3" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:layout_marginBottom="8dp">
+                        android:layout_marginBottom="@dimen/tds_spacing_2">
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="총 거래"
-                            android:textSize="14sp"
+                            style="@style/TDS_Text_Body2"
                             android:textColor="@color/tds_text_secondary" />
 
                         <TextView
@@ -73,8 +70,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="0회"
-                            android:textSize="14sp"
-                            android:textColor="@color/tds_text_primary"
+                            style="@style/TDS_Text_Body2"
                             android:textStyle="bold" />
                     </LinearLayout>
 
@@ -82,14 +78,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:layout_marginBottom="8dp">
+                        android:layout_marginBottom="@dimen/tds_spacing_2">
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="승률"
-                            android:textSize="14sp"
+                            style="@style/TDS_Text_Body2"
                             android:textColor="@color/tds_text_secondary" />
 
                         <TextView
@@ -97,8 +93,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="0%"
-                            android:textSize="14sp"
-                            android:textColor="@color/tds_text_primary"
+                            style="@style/TDS_Text_Body2"
                             android:textStyle="bold" />
                     </LinearLayout>
 
@@ -106,14 +101,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:layout_marginBottom="8dp">
+                        android:layout_marginBottom="@dimen/tds_spacing_2">
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="총 손익"
-                            android:textSize="14sp"
+                            style="@style/TDS_Text_Body2"
                             android:textColor="@color/tds_text_secondary" />
 
                         <TextView
@@ -121,8 +116,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="$0.00"
-                            android:textSize="14sp"
-                            android:textColor="@color/tds_text_primary"
+                            style="@style/TDS_Text_Body2"
                             android:textStyle="bold" />
                     </LinearLayout>
 
@@ -136,7 +130,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="평균 R:R"
-                            android:textSize="14sp"
+                            style="@style/TDS_Text_Body2"
                             android:textColor="@color/tds_text_secondary" />
 
                         <TextView
@@ -144,8 +138,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="0.00:1"
-                            android:textSize="14sp"
-                            android:textColor="@color/tds_text_primary"
+                            style="@style/TDS_Text_Body2"
                             android:textStyle="bold" />
                     </LinearLayout>
                 </LinearLayout>
@@ -153,12 +146,10 @@
 
             <!-- 필터 카드 -->
             <androidx.cardview.widget.CardView
+                style="@style/TDS_Card_Glass"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="@color/tds_bg_dark"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp">
+                android:layout_marginBottom="@dimen/tds_spacing_4">
 
                 <LinearLayout
                     android:id="@+id/filter_layout"
@@ -171,99 +162,99 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="날짜 필터"
-                        android:textSize="14sp"
+                        style="@style/TDS_Text_Caption"
                         android:textColor="@color/tds_text_secondary"
-                        android:layout_marginBottom="8dp" />
+                        android:layout_marginBottom="@dimen/tds_spacing_2" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:layout_marginBottom="16dp">
+                        android:layout_marginBottom="@dimen/tds_spacing_4">
 
-                        <Button
+                        <androidx.appcompat.widget.AppCompatButton
                             android:id="@+id/btn_today"
+                            style="@style/TDS_Button_Secondary"
                             android:layout_width="0dp"
                             android:layout_height="36dp"
                             android:layout_weight="1"
                             android:text="오늘"
                             android:textSize="12sp"
-                            android:background="@drawable/btn_secondary"
-                            android:layout_marginEnd="4dp" />
+                            android:layout_marginEnd="@dimen/tds_spacing_1" />
 
-                        <Button
+                        <androidx.appcompat.widget.AppCompatButton
                             android:id="@+id/btn_week"
+                            style="@style/TDS_Button_Secondary"
                             android:layout_width="0dp"
                             android:layout_height="36dp"
                             android:layout_weight="1"
                             android:text="이번주"
                             android:textSize="12sp"
-                            android:background="@drawable/btn_secondary"
-                            android:layout_marginHorizontal="4dp" />
+                            android:layout_marginHorizontal="@dimen/tds_spacing_1" />
 
-                        <Button
+                        <androidx.appcompat.widget.AppCompatButton
                             android:id="@+id/btn_month"
+                            style="@style/TDS_Button_Secondary"
                             android:layout_width="0dp"
                             android:layout_height="36dp"
                             android:layout_weight="1"
                             android:text="이번달"
                             android:textSize="12sp"
-                            android:background="@drawable/btn_secondary"
-                            android:layout_marginHorizontal="4dp" />
+                            android:layout_marginHorizontal="@dimen/tds_spacing_1" />
 
-                        <Button
+                        <androidx.appcompat.widget.AppCompatButton
                             android:id="@+id/btn_all"
+                            style="@style/TDS_Button_Secondary"
                             android:layout_width="0dp"
                             android:layout_height="36dp"
                             android:layout_weight="1"
                             android:text="전체"
                             android:textSize="12sp"
-                            android:background="@drawable/btn_secondary"
-                            android:layout_marginStart="4dp" />
+                            android:layout_marginStart="@dimen/tds_spacing_1" />
                     </LinearLayout>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="결과 필터"
-                        android:textSize="14sp"
+                        style="@style/TDS_Text_Caption"
                         android:textColor="@color/tds_text_secondary"
-                        android:layout_marginBottom="8dp" />
+                        android:layout_marginBottom="@dimen/tds_spacing_2" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
 
-                        <Button
+                        <androidx.appcompat.widget.AppCompatButton
                             android:id="@+id/btn_all_result"
+                            style="@style/TDS_Button_Secondary"
                             android:layout_width="0dp"
                             android:layout_height="36dp"
                             android:layout_weight="1"
                             android:text="전체"
                             android:textSize="12sp"
-                            android:background="@drawable/btn_secondary"
-                            android:layout_marginEnd="4dp" />
+                            android:layout_marginEnd="@dimen/tds_spacing_1" />
 
-                        <Button
+                        <androidx.appcompat.widget.AppCompatButton
                             android:id="@+id/btn_profit"
+                            style="@style/TDS_Button_Secondary"
                             android:layout_width="0dp"
                             android:layout_height="36dp"
                             android:layout_weight="1"
                             android:text="수익"
                             android:textSize="12sp"
-                            android:background="@drawable/btn_secondary"
-                            android:layout_marginHorizontal="4dp" />
+                            android:layout_marginHorizontal="@dimen/tds_spacing_1" />
 
-                        <Button
+                        <androidx.appcompat.widget.AppCompatButton
                             android:id="@+id/btn_loss"
+                            style="@style/TDS_Button_Secondary"
                             android:layout_width="0dp"
                             android:layout_height="36dp"
                             android:layout_weight="1"
                             android:text="손실"
                             android:textSize="12sp"
-                            android:background="@drawable/btn_secondary"
-                            android:layout_marginStart="4dp" />
+                            android:layout_marginStart="@dimen/tds_spacing_1" />
                     </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -273,10 +264,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="거래 목록"
-                android:textSize="16sp"
-                android:textColor="@color/tds_text_primary"
+                style="@style/TDS_Text_Title3"
                 android:textStyle="bold"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="@dimen/tds_spacing_2" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/history_recycler"
@@ -291,7 +281,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="거래 기록이 없습니다"
-        android:textSize="16sp"
+        style="@style/TDS_Text_Body1"
         android:textColor="@color/tds_text_secondary"
         android:visibility="gone"
         app:layout_constraintTop_toTopOf="parent"

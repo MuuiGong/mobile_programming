@@ -2,18 +2,19 @@
 <androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/TDS_Card_Glass"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
-    app:cardBackgroundColor="@color/tds_bg_dark"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="0dp">
+    android:layout_marginBottom="@dimen/tds_spacing_2"
+    android:foreground="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="12dp">
+        android:padding="@dimen/tds_spacing_3">
 
         <!-- 첫 번째 줄: 심볼, 타입, 레버리지 -->
         <LinearLayout
@@ -21,7 +22,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="@dimen/tds_spacing_2">
 
             <TextView
                 android:id="@+id/symbol_text"
@@ -29,32 +30,40 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="BTCUSDT"
-                android:textSize="16sp"
-                android:textColor="@color/tds_text_primary"
+                style="@style/TDS_Text_Body1"
                 android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/quantity_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0.1 BTC"
+                style="@style/TDS_Text_Caption"
+                android:textColor="@color/tds_text_secondary"
+                android:layout_marginEnd="@dimen/tds_spacing_2" />
 
             <TextView
                 android:id="@+id/type_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="롱"
-                android:textSize="12sp"
+                style="@style/TDS_Text_Caption"
                 android:textStyle="bold"
                 android:background="@drawable/badge_background"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp"
-                android:layout_marginEnd="8dp" />
+                android:paddingHorizontal="@dimen/tds_spacing_2"
+                android:paddingVertical="@dimen/tds_spacing_1"
+                android:layout_marginEnd="@dimen/tds_spacing_2" />
 
             <TextView
                 android:id="@+id/leverage_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="5x"
-                android:textSize="12sp"
+                style="@style/TDS_Text_Caption"
                 android:textColor="@color/tds_text_secondary"
                 android:background="@drawable/badge_background"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp" />
+                android:paddingHorizontal="@dimen/tds_spacing_2"
+                android:paddingVertical="@dimen/tds_spacing_1" />
         </LinearLayout>
 
         <!-- 두 번째 줄: 진입 가격, 현재 가격 -->
@@ -62,7 +71,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="4dp">
+            android:layout_marginBottom="@dimen/tds_spacing_1">
 
             <TextView
                 android:id="@+id/entry_price_text"
@@ -70,7 +79,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="진입: $95,836.00"
-                android:textSize="12sp"
+                style="@style/TDS_Text_Caption"
                 android:textColor="@color/tds_text_secondary" />
 
             <TextView
@@ -78,7 +87,32 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="현재: $96,432.02"
-                android:textSize="12sp"
+                style="@style/TDS_Text_Caption"
+                android:textColor="@color/tds_text_secondary" />
+        </LinearLayout>
+
+        <!-- 세 번째 줄: 마진, 가치 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/tds_spacing_1">
+
+            <TextView
+                android:id="@+id/margin_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="마진: $1,000.00"
+                style="@style/TDS_Text_Caption"
+                android:textColor="@color/tds_text_secondary" />
+
+            <TextView
+                android:id="@+id/value_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="가치: $5,000.00"
+                style="@style/TDS_Text_Caption"
                 android:textColor="@color/tds_text_secondary" />
         </LinearLayout>
 
@@ -88,14 +122,14 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="@dimen/tds_spacing_2">
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="미실현 손익"
-                android:textSize="12sp"
+                style="@style/TDS_Text_Caption"
                 android:textColor="@color/tds_text_secondary" />
 
             <TextView
@@ -103,29 +137,27 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="+$33.30"
-                android:textSize="16sp"
+                style="@style/TDS_Text_Body1"
                 android:textStyle="bold"
-                android:layout_marginEnd="8dp" />
+                android:layout_marginEnd="@dimen/tds_spacing_2" />
 
             <TextView
                 android:id="@+id/pnl_percent_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="+3.33%"
-                android:textSize="14sp"
+                style="@style/TDS_Text_Body2"
                 android:textStyle="bold" />
         </LinearLayout>
 
         <!-- 네 번째 줄: 포지션 종료 버튼 -->
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btn_close_position"
+            style="@style/TDS_Button_Secondary"
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:text="포지션 종료"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:background="@drawable/btn_secondary"
-            android:textColor="@color/tds_text_primary" />
+            android:textStyle="bold" />
     </LinearLayout>
 </androidx.cardview.widget.CardView>
 

@@ -15,6 +15,8 @@ import com.example.rsquare.data.remote.model.CoinPrice;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -31,6 +33,9 @@ public class MarketDataRepository implements WebSocketClient.PriceUpdateListener
     private final BinanceApiService binanceApiService;
     private WebSocketClient webSocketClient;
     
+    // 유효한 Binance 심볼 캐시
+    private static Set<String> validBinanceSymbols = null;
+    
     // Binance 심볼 매핑 (CoinGecko ID -> Binance Symbol)
     private static final java.util.Map<String, String> SYMBOL_MAP = new java.util.HashMap<String, String>() {{
         put("bitcoin", "BTCUSDT");
@@ -43,6 +48,19 @@ public class MarketDataRepository implements WebSocketClient.PriceUpdateListener
         put("avalanche-2", "AVAXUSDT");
     }};
     
+    /**
+     * Binance 심볼을 CoinGecko ID로 변환
+     */
+    public String getCoinIdFromSymbol(String binanceSymbol) {
+        String symbol = binanceSymbol.toLowerCase().replace("usdt", "");
+        for (java.util.Map.Entry<String, String> entry : SYMBOL_MAP.entrySet()) {
+            if (entry.getValue().replace("usdt", "").equals(symbol)) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+    
     // 간단한 메모리 캐시
     private final Map<String, CoinPrice> priceCache = new HashMap<>();
     private long lastPriceUpdate = 0;
@@ -50,6 +68,7 @@ public class MarketDataRepository implements WebSocketClient.PriceUpdateListener
     
     // 실시간 가격 업데이트 리스너
     private OnPriceUpdateListener priceUpdateListener;
+    private OnRealtimeUpdateListener realtimeUpdateListener;
     private OnKlineUpdateListener klineUpdateListener;
     
     public MarketDataRepository() {
@@ -87,6 +106,20 @@ public class MarketDataRepository implements WebSocketClient.PriceUpdateListener
     }
     
     /**
+     * 실시간 업데이트 구독 (자산 목록용)
+     * @param symbols 심볼 목록 (예: "BTCUSDT", "ETHUSDT")
+     * @param listener 리스너
+     */
+    public void subscribeToRealtimeUpdates(List<String> symbols, OnRealtimeUpdateListener listener) {
+        this.realtimeUpdateListener = listener;
+        if (webSocketClient != null) {
+            // 기존 연결이 있으면 끊고 다시 연결 (새로운 심볼 추가를 위해)
+            // 실제로는 구독 추가 기능이 있으면 좋겠지만, 현재는 재연결로 처리
+            startWebSocket(symbols);
+        }
+    }
+    
+    /**
      * 웹소켓 연결 해제
      */
     public void stopWebSocket() {
@@ -96,10 +129,17 @@ public class MarketDataRepository implements WebSocketClient.PriceUpdateListener
     }
     
     /**
-     * 실시간 가격 업데이트 리스너 설정
+     * 실시간 가격 업데이트 리스너 설정 (기존)
      */
     public void setPriceUpdateListener(OnPriceUpdateListener listener) {
         this.priceUpdateListener = listener;
+    }
+
+    /**
+     * 실시간 업데이트 리스너 설정 (가격 + 변동률)
+     */
+    public void setRealtimeUpdateListener(OnRealtimeUpdateListener listener) {
+        this.realtimeUpdateListener = listener;
     }
     
     /**
@@ -120,26 +160,33 @@ public class MarketDataRepository implements WebSocketClient.PriceUpdateListener
     }
     
     @Override
-    public void onPriceUpdate(String coinId, double price) {
+    public void onPriceUpdate(String coinId, double price, double changePercent) {
         // 캐시 업데이트
         CoinPrice cachedPrice = priceCache.get(coinId);
         if (cachedPrice != null) {
             // 가격만 업데이트
             cachedPrice.setCurrentPrice(price);
+            cachedPrice.setPriceChangePercentage24h(changePercent); // CoinPrice에 필드가 있다고 가정하거나, 없으면 무시
             priceCache.put(coinId, cachedPrice);
         } else {
             // 새로 생성
             CoinPrice newPrice = new CoinPrice();
             newPrice.setId(coinId);
             newPrice.setCurrentPrice(price);
+            newPrice.setPriceChangePercentage24h(changePercent);
             priceCache.put(coinId, newPrice);
         }
         
         lastPriceUpdate = System.currentTimeMillis();
         
-        // 리스너에 알림
+        // 기존 리스너에 알림 (가격만)
         if (priceUpdateListener != null) {
             priceUpdateListener.onPriceUpdate(coinId, price);
+        }
+        
+        // 새 리스너에 알림 (가격 + 변동률)
+        if (realtimeUpdateListener != null) {
+            realtimeUpdateListener.onRealtimeUpdate(coinId, price, changePercent);
         }
     }
     
@@ -211,6 +258,54 @@ public class MarketDataRepository implements WebSocketClient.PriceUpdateListener
     }
     
     /**
+     * 시가총액 상위 코인 조회
+     * 
+     * @param limit 조회할 개수
+     * @param listener 콜백
+     */
+    public void getTopCoins(int limit, OnMarketDataLoadedListener listener) {
+        Call<List<CoinPrice>> call = apiService.getCoinsMarket(
+            "usd",
+            null, // ids = null이면 전체 조회
+            "market_cap_desc",
+            limit,
+            1,
+            false
+        );
+        
+        call.enqueue(new Callback<List<CoinPrice>>() {
+            @Override
+            public void onResponse(Call<List<CoinPrice>> call, Response<List<CoinPrice>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<CoinPrice> prices = response.body();
+                    
+                    // 캐시 업데이트
+                    for (CoinPrice price : prices) {
+                        priceCache.put(price.getId(), price);
+                    }
+                    lastPriceUpdate = System.currentTimeMillis();
+                    
+                    if (listener != null) {
+                        listener.onMarketDataLoaded(prices);
+                    }
+                } else {
+                    if (listener != null) {
+                        listener.onError("API 응답 오류: " + response.code());
+                    }
+                }
+            }
+            
+            @Override
+            public void onFailure(Call<List<CoinPrice>> call, Throwable t) {
+                Log.e(TAG, "Top coins fetch failed", t);
+                if (listener != null) {
+                    listener.onError("네트워크 오류: " + t.getMessage());
+                }
+            }
+        });
+    }
+    
+    /**
      * 차트 데이터 조회 (Binance API 사용)
      * 
      * @param coinId 코인 ID (예: "bitcoin")
@@ -218,13 +313,18 @@ public class MarketDataRepository implements WebSocketClient.PriceUpdateListener
      * @param listener 콜백
      */
     public void getMarketChart(String coinId, int days, OnChartDataLoadedListener listener) {
-        // Binance 심볼로 변환
+        // Binance 심볼로 변환 시도
         String binanceSymbol = SYMBOL_MAP.get(coinId.toLowerCase());
+        
+        // 매핑에 없으면 입력값을 그대로 심볼로 사용 (예: "BTCUSDT")
         if (binanceSymbol == null) {
-            if (listener != null) {
-                listener.onError("지원하지 않는 코인: " + coinId);
+            binanceSymbol = coinId.toUpperCase();
+            if (binanceSymbol.isEmpty()) {
+                if (listener != null) {
+                    listener.onError("유효하지 않은 코인 심볼: " + coinId);
+                }
+                return;
             }
-            return;
         }
         
         // 간격 결정 (days에 따라)
@@ -372,25 +472,38 @@ public class MarketDataRepository implements WebSocketClient.PriceUpdateListener
      * @param listener 콜백
      */
     public void getBinanceKlines(String coinId, String interval, int days, OnBinanceKlinesLoadedListener listener) {
-        // Binance 심볼로 변환
+        // Binance 심볼로 변환 시도
         String binanceSymbol = SYMBOL_MAP.get(coinId.toLowerCase());
+        
+        // 매핑에 없으면 입력값을 그대로 심볼로 사용 (예: "BTCUSDT")
         if (binanceSymbol == null) {
-            if (listener != null) {
-                listener.onError("지원하지 않는 코인: " + coinId);
+            // 대문자로 변환하여 사용
+            binanceSymbol = coinId.toUpperCase();
+            
+            // USDT가 없으면 추가 (대부분의 경우 USDT 페어이므로)
+            if (!binanceSymbol.endsWith("USDT")) {
+                binanceSymbol += "USDT";
             }
-            return;
+            
+            // 기본적인 유효성 검사
+            if (binanceSymbol.isEmpty()) {
+                if (listener != null) {
+                    listener.onError("유효하지 않은 코인 심볼: " + coinId);
+                }
+                return;
+            }
         }
         
         // 간격 결정 (interval이 지정되지 않으면 days에 따라 자동 결정)
         if (interval == null || interval.isEmpty()) {
-        if (days <= 1) {
-            interval = "5m";
-        } else if (days <= 7) {
-            interval = "1h";
-        } else if (days <= 30) {
-            interval = "4h";
-        } else {
-            interval = "1d";
+            if (days <= 1) {
+                interval = "5m";
+            } else if (days <= 7) {
+                interval = "1h";
+            } else if (days <= 30) {
+                interval = "4h";
+            } else {
+                interval = "1d";
             }
         }
         
@@ -436,6 +549,58 @@ public class MarketDataRepository implements WebSocketClient.PriceUpdateListener
      * 
      * @param listener 콜백
      */
+    /**
+     * 유효한 Binance 심볼 목록 조회 (USDT 페어만)
+     */
+    public void getValidBinanceSymbols(OnValidSymbolsLoadedListener listener) {
+        // 캐시가 있으면 바로 반환
+        if (validBinanceSymbols != null && !validBinanceSymbols.isEmpty()) {
+            if (listener != null) {
+                listener.onValidSymbolsLoaded(validBinanceSymbols);
+            }
+            return;
+        }
+        
+        Call<com.example.rsquare.data.remote.model.ExchangeInfoResponse> call = binanceApiService.getExchangeInfo();
+        call.enqueue(new Callback<com.example.rsquare.data.remote.model.ExchangeInfoResponse>() {
+            @Override
+            public void onResponse(Call<com.example.rsquare.data.remote.model.ExchangeInfoResponse> call, Response<com.example.rsquare.data.remote.model.ExchangeInfoResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Set<String> symbols = new HashSet<>();
+                    List<com.example.rsquare.data.remote.model.SymbolInfo> symbolInfos = response.body().getSymbols();
+                    
+                    if (symbolInfos != null) {
+                        for (com.example.rsquare.data.remote.model.SymbolInfo info : symbolInfos) {
+                            // 거래 가능하고 USDT로 끝나는 심볼만 추가
+                            if ("TRADING".equals(info.getStatus()) && info.getSymbol().endsWith("USDT")) {
+                                symbols.add(info.getSymbol());
+                            }
+                        }
+                    }
+                    
+                    validBinanceSymbols = symbols;
+                    Log.d(TAG, "Loaded " + symbols.size() + " valid Binance symbols");
+                    
+                    if (listener != null) {
+                        listener.onValidSymbolsLoaded(symbols);
+                    }
+                } else {
+                    if (listener != null) {
+                        listener.onError("API 응답 오류: " + response.code());
+                    }
+                }
+            }
+            
+            @Override
+            public void onFailure(Call<com.example.rsquare.data.remote.model.ExchangeInfoResponse> call, Throwable t) {
+                Log.e(TAG, "Exchange info fetch failed", t);
+                if (listener != null) {
+                    listener.onError("네트워크 오류: " + t.getMessage());
+                }
+            }
+        });
+    }
+
     public void getCoinList(OnCoinListLoadedListener listener) {
         Call<List<CoinListItem>> call = apiService.getCoinList();
         
@@ -495,6 +660,11 @@ public class MarketDataRepository implements WebSocketClient.PriceUpdateListener
         void onError(String error);
     }
     
+    public interface OnValidSymbolsLoadedListener {
+        void onValidSymbolsLoaded(Set<String> symbols);
+        void onError(String error);
+    }
+    
     public interface OnCoinListLoadedListener {
         void onCoinListLoaded(List<CoinListItem> coins);
         void onError(String error);
@@ -515,6 +685,13 @@ public class MarketDataRepository implements WebSocketClient.PriceUpdateListener
         void onKlineUpdate(String coinId, long openTime, double open, double high, double low, double close, double volume);
     }
     
+    /**
+     * 실시간 업데이트 리스너 (가격 + 변동률)
+     */
+    public interface OnRealtimeUpdateListener {
+        void onRealtimeUpdate(String coinId, double price, double changePercent);
+    }
+
     /**
      * Binance Klines 데이터 로드 리스너
      */

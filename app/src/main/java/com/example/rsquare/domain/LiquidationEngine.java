@@ -67,29 +67,13 @@ public class LiquidationEngine {
             // 3. P&L 계산 (손실)
             double liquidationPnL = position.calculateUnrealizedPnL(executionPrice);
             
-            // 4. 포지션 종료
-            position.setClosed(true);
-            position.setCloseTime(new java.util.Date());
-            position.setClosedPrice(executionPrice);
-            position.setExitReason(reason);
-            position.setPnl(liquidationPnL);
-            
-            // DB 업데이트
-            tradingRepository.updatePositionSync(position);
-            
-            // 5. 거래 히스토리 기록
-            TradeHistory tradeHistory = new TradeHistory();
-            tradeHistory.setPositionId(position.getId());
-            tradeHistory.setSymbol(position.getSymbol());
-            tradeHistory.setType(TradeHistory.TradeType.CLOSE_SL);
-            tradeHistory.setPrice(executionPrice);
-            tradeHistory.setQuantity(position.getQuantity());
-            tradeHistory.setPnl(liquidationPnL);
-            tradeHistory.setTimestamp(new java.util.Date());
-            tradingRepository.insertTradeHistorySync(tradeHistory);
-            
-            // 6. 잔고 업데이트
-            userRepository.addToBalance(position.getUserId(), liquidationPnL);
+            // 4. 포지션 종료 (TradingRepository 위임)
+            tradingRepository.closePositionSync(
+                position.getId(), 
+                executionPrice, 
+                TradeHistory.TradeType.CLOSE_SL, 
+                reason
+            );
             
             Log.d(TAG, String.format(
                 "Liquidation completed: Position %d, Price: %.2f, PnL: %.2f, Reason: %s",

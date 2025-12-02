@@ -76,9 +76,9 @@ public class BaseActivity extends AppCompatActivity {
     protected View findBottomPanel() {
         // 기본적으로 control_panel, bottom_sheet_coordinator 등을 찾으려고 시도
         View panel = findViewById(R.id.control_panel);
-        if (panel == null) {
-            panel = findViewById(R.id.bottom_sheet_coordinator);
-        }
+        // if (panel == null) {
+        //    panel = findViewById(R.id.bottom_sheet_coordinator);
+        // }
         return panel;
     }
     

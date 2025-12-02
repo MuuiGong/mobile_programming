@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="@dimen/tds_spacing_5">
+
+    <!-- Large Icon -->
+    <View
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:background="@drawable/circle_background"
+        android:backgroundTint="@color/tds_blue_500"
+        android:alpha="0.2"
+        android:layout_marginBottom="@dimen/tds_spacing_5" />
+
+    <!-- Title -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="지금 바로\n시작하세요"
+        style="@style/TDS_Text_Title1"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="@dimen/tds_spacing_4" />
+
+    <!-- Description -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="$10,000 가상 자금으로\n안전하게 연습하세요"
+        style="@style/TDS_Text_Body1"
+        android:textColor="@color/tds_text_secondary"
+        android:gravity="center"
+        android:lineSpacingExtra="4dp"
+        android:layout_marginBottom="@dimen/tds_spacing_5" />
+
+    <!-- Feature Summary -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/card_background"
+        android:backgroundTint="@color/tds_bg_dark"
+        android:padding="@dimen/tds_spacing_4">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="✓  자동 리스크 계산"
+            style="@style/TDS_Text_Body1"
+            android:textColor="@color/tds_blue_400"
+            android:layout_marginBottom="@dimen/tds_spacing_2" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="✓  실시간 모니터링"
+            style="@style/TDS_Text_Body1"
+            android:textColor="@color/tds_blue_400"
+            android:layout_marginBottom="@dimen/tds_spacing_2" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="✓  15개 암호화폐 지원"
+            style="@style/TDS_Text_Body1"
+            android:textColor="@color/tds_blue_400" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -29,6 +29,8 @@ public class ChartViewModel extends AndroidViewModel {
     // 현재 선택된 코인 및 가격
     private final MutableLiveData<String> selectedCoinId = new MutableLiveData<>("bitcoin");
     private final MutableLiveData<Double> currentPrice = new MutableLiveData<>();
+    private final MutableLiveData<Double> openPrice24h = new MutableLiveData<>();
+    private final MutableLiveData<Double> priceChangePercent = new MutableLiveData<>();
     
     // 실시간 캔들스틱 업데이트
     public static class KlineData {
@@ -73,23 +75,18 @@ public class ChartViewModel extends AndroidViewModel {
         marketDataRepository = new MarketDataRepository();
         
         // 웹소켓 리스너 설정 (실시간 가격 업데이트)
-        marketDataRepository.setPriceUpdateListener(new MarketDataRepository.OnPriceUpdateListener() {
+        // 웹소켓 리스너 설정 (실시간 가격 업데이트)
+        marketDataRepository.setRealtimeUpdateListener(new MarketDataRepository.OnRealtimeUpdateListener() {
             @Override
-            public void onPriceUpdate(String coinId, double price) {
-                android.util.Log.d("ChartViewModel", "WebSocket price update received: " + coinId + " = " + price);
+            public void onRealtimeUpdate(String coinId, double price, double changePercent) {
+                // android.util.Log.d("ChartViewModel", "WebSocket price update received: " + coinId + " = " + price + " (" + changePercent + "%)");
                 // 선택된 코인의 가격이 업데이트되면 LiveData 업데이트
                 String selectedId = selectedCoinId.getValue();
-                if (selectedId != null && selectedId.equals(coinId)) {
-                    android.util.Log.d("ChartViewModel", "Updating current price for selected coin: " + price);
+                if (selectedId != null && (selectedId.equals(coinId) || selectedId.equalsIgnoreCase(coinId))) {
+                    // android.util.Log.d("ChartViewModel", "Updating current price for selected coin: " + price);
                     currentPrice.postValue(price);
-                } else {
-                    android.util.Log.d("ChartViewModel", "Price update ignored (selected coin: " + selectedId + ", update coin: " + coinId + ")");
+                    priceChangePercent.postValue(changePercent);
                 }
-            }
-            
-            @Override
-            public void onConnectionStatusChanged(boolean connected) {
-                android.util.Log.d("ChartViewModel", "WebSocket connected: " + connected);
             }
         });
         
@@ -108,7 +105,7 @@ public class ChartViewModel extends AndroidViewModel {
         
         // 초기 데이터 로드
         loadMarketData();
-        loadChartData("bitcoin", 7);
+        // loadChartData("bitcoin", 7); // 제거: Activity에서 올바른 심볼로 로드하도록 함
     }
     
     /**
@@ -118,9 +115,15 @@ public class ChartViewModel extends AndroidViewModel {
         android.util.Log.d("ChartViewModel", "loadMarketData() called");
         loading.setValue(true);
         
-        // 주요 코인들 조회
+        // 주요 코인들 조회 + 현재 선택된 코인
+        String coinsToFetch = "bitcoin,ethereum,cardano,solana,ripple,polkadot,dogecoin,avalanche-2";
+        String selectedId = selectedCoinId.getValue();
+        if (selectedId != null && !coinsToFetch.contains(selectedId)) {
+            coinsToFetch += "," + selectedId;
+        }
+        
         marketDataRepository.getCoinsMarket(
-            "bitcoin,ethereum,cardano,solana,ripple,polkadot,dogecoin,avalanche-2",
+            coinsToFetch,
             new MarketDataRepository.OnMarketDataLoadedListener() {
                 @Override
                 public void onMarketDataLoaded(List<CoinPrice> prices) {
@@ -135,6 +138,12 @@ public class ChartViewModel extends AndroidViewModel {
                             if (price.getId().equals(selectedId)) {
                                 android.util.Log.d("ChartViewModel", "Setting initial price for " + selectedId + ": " + price.getCurrentPrice());
                                 currentPrice.postValue(price.getCurrentPrice());
+                                
+                                // 24시간 기준 시가 계산 (현재가 / (1 + 변동률/100))
+                                double changePercent = price.getPriceChangePercentage24h();
+                                double open24h = price.getCurrentPrice() / (1 + changePercent / 100.0);
+                                openPrice24h.postValue(open24h);
+                                android.util.Log.d("ChartViewModel", "Calculated 24h open price: " + open24h + " (change: " + changePercent + "%)");
                                 
                                 // 진입가가 설정되지 않았으면 현재 가격으로 설정
                                 if (entryPrice.getValue() == null) {
@@ -313,6 +322,12 @@ public class ChartViewModel extends AndroidViewModel {
             for (CoinPrice price : prices) {
                 if (price.getId().equals(coinId)) {
                     currentPrice.setValue(price.getCurrentPrice());
+                    
+                    // 24시간 기준 시가 계산
+                    double changePercent = price.getPriceChangePercentage24h();
+                    double open24h = price.getCurrentPrice() / (1 + changePercent / 100.0);
+                    openPrice24h.setValue(open24h);
+                    
                     entryPrice.setValue(price.getCurrentPrice());
                     break;
                 }
@@ -419,6 +434,10 @@ public class ChartViewModel extends AndroidViewModel {
         return currentPrice;
     }
     
+    public MutableLiveData<Double> getOpenPrice24h() {
+        return openPrice24h;
+    }
+    
     public MutableLiveData<Double> getEntryPrice() {
         return entryPrice;
     }
@@ -449,6 +468,17 @@ public class ChartViewModel extends AndroidViewModel {
     
     public MutableLiveData<String> getTimeframe() {
         return timeframe;
+    }
+    
+    public MutableLiveData<Double> getPriceChangePercent() {
+        return priceChangePercent;
+    }
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        if (marketDataRepository != null) {
+            marketDataRepository.stopWebSocket();
+        }
     }
 }
 

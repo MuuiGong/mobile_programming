@@ -1,92 +1,92 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- TDS 기반 앱 테마 (다크 모드 - TradingView 스타일) -->
+    <!-- TDS 기반 앱 테마 (OKX Exchange 스타일) -->
     <!-- Material2 사용 (BottomNavigationView 호환성) -->
     <style name="Theme.RSquare.TDS" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Primary brand color (토스 블루) -->
+        <!-- Primary brand color (OKX Blue) -->
         <item name="colorPrimary">@color/tds_blue_400</item>
         <item name="colorPrimaryVariant">@color/tds_blue_500</item>
         <item name="colorOnPrimary">@color/tds_dark_background</item>
         
-        <!-- Secondary brand color -->
+        <!-- Secondary brand color (OKX Green) -->
         <item name="colorSecondary">@color/tds_success</item>
         <item name="colorSecondaryVariant">@color/tds_success</item>
         <item name="colorOnSecondary">@color/tds_dark_background</item>
         
-        <!-- Background colors (TradingView 다크 테마 #131722와 유사) -->
-        <item name="android:windowBackground">#131722</item>
-        <item name="android:colorBackground">#131722</item>
-        <item name="colorSurface">#1e222d</item>
-        <item name="colorOnSurface">#d1d4dc</item>
+        <!-- Background colors (OKX Dark Theme #161722) -->
+        <item name="android:windowBackground">@color/tds_bg_black</item>
+        <item name="android:colorBackground">@color/tds_bg_black</item>
+        <item name="colorSurface">@color/tds_dark_surface</item>
+        <item name="colorOnSurface">@color/tds_text_primary_dark</item>
         
-        <!-- Status bar -->
-        <item name="android:statusBarColor">#131722</item>
+        <!-- Status bar (OKX Dark) -->
+        <item name="android:statusBarColor">@color/tds_bg_black</item>
         <item name="android:windowLightStatusBar">false</item>
         
-        <!-- Navigation bar -->
-        <item name="android:navigationBarColor">#131722</item>
+        <!-- Navigation bar (OKX Dark) -->
+        <item name="android:navigationBarColor">@color/tds_bg_black</item>
         <item name="android:windowLightNavigationBar">false</item>
         
-        <!-- Text colors (TradingView 스타일) -->
-        <item name="android:textColorPrimary">#d1d4dc</item>
-        <item name="android:textColorSecondary">#787b86</item>
+        <!-- Text colors (OKX Style) -->
+        <item name="android:textColorPrimary">@color/tds_text_primary_dark</item>
+        <item name="android:textColorSecondary">@color/tds_text_secondary_dark</item>
         
-        <!-- Navigation Bar Colors (Material2 호환 - 명시적 정의) -->
-        <item name="colorControlNormal">#787b86</item>
-        <item name="colorControlActivated">#3182FF</item>
-        <item name="colorControlHighlight">#1a3182FF</item>
-        <item name="android:textColorPrimaryInverse">#d1d4dc</item>
-        <item name="android:textColorSecondaryInverse">#787b86</item>
-        <!-- Material Components 기본 색상 (BottomNavigationView 필수) -->
-        <item name="colorAccent">#3182FF</item>
-        <item name="android:textColor">#d1d4dc</item>
-        <item name="android:textColorHint">#787b86</item>
-        <!-- Material3 호환 색상 -->
-        <item name="colorSurfaceVariant">#2a2e39</item>
-        <item name="colorOnSurfaceVariant">#787b86</item>
+        <!-- Navigation Bar Colors (Material2 compatible - OKX Blue) -->
+        <item name="colorControlNormal">@color/tds_text_tertiary_dark</item>
+        <item name="colorControlActivated">@color/tds_blue_500</item>
+        <item name="colorControlHighlight">#1a0075FF</item>
+        <item name="android:textColorPrimaryInverse">@color/tds_text_primary_dark</item>
+        <item name="android:textColorSecondaryInverse">@color/tds_text_secondary_dark</item>
         
-        <!-- Shape appearances (Material2 호환) -->
+        <!-- Material Components base colors (BottomNavigationView required) -->
+        <item name="colorAccent">@color/tds_blue_500</item>
+        <item name="android:textColor">@color/tds_text_primary_dark</item>
+        <item name="android:textColorHint">@color/tds_text_secondary_dark</item>
+        
+        <!-- Material3 compatible colors -->
+        <item name="colorSurfaceVariant">@color/tds_dark_surface_elevated</item>
+        <item name="colorOnSurfaceVariant">@color/tds_text_secondary_dark</item>
+        
+        <!-- Shape appearances (Material2 compatible) -->
         <item name="shapeAppearanceSmallComponent">@style/TDS_ShapeAppearance_SmallComponent</item>
         <item name="shapeAppearanceMediumComponent">@style/TDS_ShapeAppearance_MediumComponent</item>
         <item name="shapeAppearanceLargeComponent">@style/TDS_ShapeAppearance_LargeComponent</item>
         
-        <!-- TextInputLayout (Material Components 필수) -->
+        <!-- TextInputLayout (Material Components required) -->
         <item name="textInputStyle">@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox</item>
-        <!-- Material Components TextAppearance 속성 (Material2 호환) -->
+        
+        <!-- Material Components TextAppearance (Material2 compatible) -->
         <item name="textAppearanceBody1">@style/TextAppearance.MaterialComponents.Body1</item>
         <item name="textAppearanceBody2">@style/TextAppearance.MaterialComponents.Body2</item>
         <item name="textAppearanceCaption">@style/TextAppearance.MaterialComponents.Caption</item>
-        
-        <!-- Bottom Navigation - 기본 스타일 사용 (내부 색상 리소스 문제 우회) -->
-        <!-- <item name="bottomNavigationStyle">@style/TDS_BottomNavigation</item> -->
     </style>
     
-    <!-- Bottom Navigation Style (Material2 호환) -->
-    <!-- Widget.MaterialComponents.BottomNavigationView를 parent로 사용 -->
+    <!-- Bottom Navigation Style (Material2 compatible - OKX Style) -->
     <style name="TDS_BottomNavigation" parent="Widget.MaterialComponents.BottomNavigationView">
         <item name="itemIconTint">@color/tds_navigation_item</item>
         <item name="itemTextColor">@color/tds_navigation_item</item>
         <item name="itemRippleColor">@android:color/transparent</item>
-        <item name="android:background">#1e222d</item>
+        <item name="android:background">@color/tds_dark_surface</item>
         <item name="elevation">8dp</item>
-        <!-- Material2 호환 색상 (명시적 정의) -->
-        <item name="colorControlNormal">#787b86</item>
-        <item name="colorControlActivated">#3182FF</item>
-        <item name="colorControlHighlight">#1a3182FF</item>
-        <item name="colorAccent">#3182FF</item>
+        
+        <!-- Material2 compatible colors (explicit definition) -->
+        <item name="colorControlNormal">@color/tds_text_tertiary_dark</item>
+        <item name="colorControlActivated">@color/tds_blue_500</item>
+        <item name="colorControlHighlight">#1a0075FF</item>
+        <item name="colorAccent">@color/tds_blue_500</item>
     </style>
     
-    <!-- Bottom Navigation Theme (createDefaultColorStateList 문제 해결) -->
+    <!-- Bottom Navigation Theme (createDefaultColorStateList fix) -->
     <style name="TDS_BottomNavigation_Theme" parent="Theme.MaterialComponents">
-        <item name="colorControlNormal">#787b86</item>
-        <item name="colorControlActivated">#3182FF</item>
-        <item name="colorControlHighlight">#1a3182FF</item>
-        <item name="colorAccent">#3182FF</item>
-        <item name="android:textColorPrimary">#d1d4dc</item>
-        <item name="android:textColorSecondary">#787b86</item>
+        <item name="colorControlNormal">@color/tds_text_tertiary_dark</item>
+        <item name="colorControlActivated">@color/tds_blue_500</item>
+        <item name="colorControlHighlight">#1a0075FF</item>
+        <item name="colorAccent">@color/tds_blue_500</item>
+        <item name="android:textColorPrimary">@color/tds_text_primary_dark</item>
+        <item name="android:textColorSecondary">@color/tds_text_secondary_dark</item>
     </style>
     
-    <!-- Shape Appearances (Material2 호환) -->
+    <!-- Shape Appearances (Material2 compatible) -->
     <style name="TDS_ShapeAppearance_SmallComponent" parent="ShapeAppearance.MaterialComponents.SmallComponent">
         <item name="cornerSize">@dimen/tds_radius_small</item>
     </style>
@@ -99,4 +99,3 @@
         <item name="cornerSize">@dimen/tds_radius_large</item>
     </style>
 </resources>
-
